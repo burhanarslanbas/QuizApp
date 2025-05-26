@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.15" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuizApp.Domain\QuizApp.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Repositories\QuizResult\" />
+    <Folder Include="Repositories\Quiz\" />
+    <Folder Include="Repositories\Question\" />
+    <Folder Include="Repositories\User\" />
+  </ItemGroup>
+
+</Project>
