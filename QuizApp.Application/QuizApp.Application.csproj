@@ -17,6 +17,30 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DTOs\Requests\Category\Read\" />
+    <Folder Include="DTOs\Requests\Option\" />
+    <Folder Include="DTOs\Requests\QuestionRepo\" />
+    <Folder Include="DTOs\Requests\Question\" />
+    <Folder Include="DTOs\Requests\QuizResult\" />
+    <Folder Include="DTOs\Requests\Quiz\" />
+    <Folder Include="DTOs\Requests\UserAnswer\" />
+    <Folder Include="DTOs\Requests\User\" />
+    <Folder Include="DTOs\Responses\Category\" />
+    <Folder Include="DTOs\Responses\Option\" />
+    <Folder Include="DTOs\Responses\QuestionRepo\" />
+    <Folder Include="DTOs\Responses\Question\" />
+    <Folder Include="DTOs\Responses\QuizResult\" />
+    <Folder Include="DTOs\Responses\Quiz\" />
+    <Folder Include="DTOs\Responses\UserAnswer\" />
+    <Folder Include="DTOs\Responses\User\" />
+    <Folder Include="MappingProfiles\Category\" />
+    <Folder Include="MappingProfiles\Option\" />
+    <Folder Include="MappingProfiles\QuestionRepo\" />
+    <Folder Include="MappingProfiles\Question\" />
+    <Folder Include="MappingProfiles\QuizResult\" />
+    <Folder Include="MappingProfiles\Quiz\" />
+    <Folder Include="MappingProfiles\UserAnswer\" />
+    <Folder Include="MappingProfiles\User\" />
     <Folder Include="Repositories\QuizResult\" />
     <Folder Include="Repositories\Quiz\" />
     <Folder Include="Repositories\Question\" />
