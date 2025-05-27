@@ -49,6 +49,7 @@ namespace QuizApp.Persistence.Contexts
                     EntityState.Added => model.Entity.CreatedDate = DateTime.UtcNow,
                     EntityState.Modified => model.Entity.UpdatedDate = DateTime.UtcNow,
                     EntityState.Deleted => model.Entity.DeletedDate = DateTime.UtcNow,
+                    _ => DateTime.UtcNow
                 };
             }
 

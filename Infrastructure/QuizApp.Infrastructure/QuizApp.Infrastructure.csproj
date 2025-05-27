@@ -10,8 +10,4 @@
     <ProjectReference Include="..\..\QuizApp.Application\QuizApp.Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Managers\" />
-  </ItemGroup>
-
 </Project>

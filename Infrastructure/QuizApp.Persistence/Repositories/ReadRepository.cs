@@ -36,7 +36,8 @@ namespace QuizApp.Persistence.Repositories
             var query = Table.AsQueryable();
             if (!tracking)
                 query = query.AsNoTracking();
-            return await query.FirstOrDefaultAsync(method);
+            var result = await query.FirstOrDefaultAsync(method);
+            return result ?? throw new InvalidOperationException("No entity found matching the specified criteria.");
         }
 
         public async Task<T> GetByIdAsync(Guid id, bool tracking = true)
@@ -44,10 +45,10 @@ namespace QuizApp.Persistence.Repositories
             var query = Table.AsQueryable();
             if (!tracking)
                 query.AsNoTracking();
-            return await Table.FirstOrDefaultAsync(data => data.Id.Equals(id));
+            var result = await query.FirstOrDefaultAsync(data => data.Id.Equals(id));
+            return result ?? throw new InvalidOperationException($"No entity found with ID: {id}.");
         }
         //=> await Table.FirstOrDefaultAsync(data => data.Id != null && data.Id.Equals(id));
         //return await Table.FindAsync(id);
-
     }
 }

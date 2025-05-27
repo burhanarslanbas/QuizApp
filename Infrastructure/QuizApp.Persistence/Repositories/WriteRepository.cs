@@ -20,37 +20,47 @@ namespace QuizApp.Persistence.Repositories
 
         public async Task<bool> AddAsync(T model)
         {
-            EntityEntry<T> entityEntry = await Table.AddAsync(model);
-            return entityEntry.State == EntityState.Added;
+            // Add the model to the DbSet and save changes
+            await Table.AddAsync(model);
+            int result = await _context.SaveChangesAsync();
+            // Return true if the save operation was successful
+            return result > 0;
         }
 
         public async Task<bool> AddRangeAsync(List<T> models)
         {
             await Table.AddRangeAsync(models);
-            return true;
-        }
-
-        public bool Remove(T model)
-        {
-            EntityEntry<T> entityEntry = Table.Remove(model);
-            return entityEntry.State == EntityState.Deleted;
+            int result = await _context.SaveChangesAsync();
+            // Return true if the save operation was successful
+            return result > 0;
         }
 
         public async Task<bool> RemoveById(Guid id)
         {
-            T model = await Table.FirstOrDefaultAsync(data => data.Id.Equals(id));
-            return Remove(model);
+            T? model = await Table.FirstOrDefaultAsync(data => data.Id.Equals(id));
+            if (model == null)
+                return false;
+            Table.Remove(model);
+            int result = await _context.SaveChangesAsync();
+            return result > 0;
         }
         public bool RemoveRange(List<T> models)
         {
             Table.RemoveRange(models);
-            return true;
+            int result = _context.SaveChanges();
+            // Return true if the remove operation was successful
+            return result > 0;
         }
 
         public bool Update(T model)
         {
-            EntityEntry<T> entityEntry = Table.Update(model);
-            return entityEntry.State == EntityState.Modified;
+            EntityEntry<T> entry = _context.Entry(model);
+            if (entry.State == EntityState.Detached)
+                Table.Attach(model);
+            entry.State = EntityState.Modified;
+            int result = _context.SaveChanges();
+            // Return true if the update operation was successful
+            return result > 0;
         }
     }
 }

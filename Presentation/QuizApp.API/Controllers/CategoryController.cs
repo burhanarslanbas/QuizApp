@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QuizApp.Application.Repositories;
+using QuizApp.Application.DTOs.Requests.Category;
+using QuizApp.Application.Services;
 
 namespace QuizApp.API.Controllers
 {
@@ -8,32 +8,91 @@ namespace QuizApp.API.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly ICategoryWriteRepository _categoryWriteRepository;
-        private readonly ICategoryReadRepository _categoryReadRepository;
-        public CategoryController(ICategoryWriteRepository categoryWriteRepository, ICategoryReadRepository categoryReadRepository)
+        private readonly ICategoryService _categoryService;
+
+        public CategoryController(ICategoryService categoryService)
         {
-            _categoryWriteRepository = categoryWriteRepository;
-            _categoryReadRepository = categoryReadRepository;
+            _categoryService = categoryService;
         }
 
-        [HttpGet]
-        public async Task Get()
+        [HttpPost("Create")]
+        public async Task<IActionResult> CreateAsync([FromBody] CreateCategoryRequest request)
         {
-
+            var result = await _categoryService.CreateAsync(request);
+            if (result)
+            {
+                return Ok("Category created successfully.");
+            }
+            return StatusCode(500, "An error occurred while creating the category.");
         }
-        // Oluşturduğumuz verileri json formatında görebilmek için bu fonksiyonu oluşturduk.
+
+        // Delete a category by ID
+        [HttpDelete("Delete/{id}")]
+        public async Task<IActionResult> DeleteAsync(Guid id)
+        {
+            var result = await _categoryService.Delete(id);
+            if (result)
+            {
+                return Ok("Category deleted successfully.");
+            }
+            return NotFound("Category not found.");
+        }
+
+        // Update a category
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateAsync([FromBody] UpdateCategoryRequest request)
+        {
+            var result = await _categoryService.Update(request);
+            if (result != null)
+            {
+                return Ok(result);
+            }
+            return NotFound("Category not found.");
+        }
+
+        // Get a category by ID
+        [HttpGet("GetById/{id}")]
+        public async Task<IActionResult> GetByIdAsync(Guid id)
+        {
+            var result = await _categoryService.GetById(id);
+            if (result != null)
+            {
+                return Ok(result);
+            }
+            return NotFound("Category not found.");
+        }
+        // Get all categories
         [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllAsync()
         {
-            var categories = await _categoryReadRepository.Table.ToListAsync();
-            return Ok(categories);
+            var result = await _categoryService.GetAll();
+            if (result != null && result.Any())
+            {
+                return Ok(result);
+            }
+            return NotFound("No categories found.");
         }
-
-        [HttpGet("GetById")]
-        public async Task<IActionResult> GetById(Guid id)
+        // Create multiple categories
+        [HttpPost("CreateRange")]
+        public async Task<IActionResult> CreateRangeAsync([FromBody] List<CreateCategoryRequest> requests)
         {
-            var category = await _categoryReadRepository.GetByIdAsync(id);
-            return Ok(category);
+            var result = await _categoryService.CreateRangeAsync(requests);
+            if (result != null && result.Any())
+            {
+                return Ok(result);
+            }
+            return StatusCode(500, "An error occurred while creating categories.");
+        }
+        // Delete multiple categories
+        [HttpDelete("DeleteRange")]
+        public async Task<IActionResult> DeleteRangeAsync([FromBody] List<Guid> ids)
+        {
+            var result = await _categoryService.DeleteRange(ids);
+            if (result)
+            {
+                return Ok("Categories deleted successfully.");
+            }
+            return NotFound("No categories found for the provided IDs.");
         }
     }
 }
