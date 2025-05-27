@@ -1,6 +1,7 @@
 using AutoMapper;
 using QuizApp.Application.DTOs.Requests.QuestionRepo;
-using QuizApp.Application.DTOs.Requests.QuestionRepo.Read;
+using QuizApp.Application.DTOs.Responses.Question;
+using QuizApp.Application.Exceptions;
 using QuizApp.Application.Repositories;
 using QuizApp.Application.Services;
 using QuizApp.Domain.Entities;
@@ -9,145 +10,85 @@ namespace QuizApp.Infrastructure.Managers;
 
 public class QuestionRepoManager : IQuestionRepoService
 {
-    private readonly IQuestionRepoWriteRepository _questionRepoWriteRepository;
-    private readonly IQuestionRepoReadRepository _questionRepoReadRepository;
     private readonly IQuestionReadRepository _questionReadRepository;
+    private readonly IQuestionWriteRepository _questionWriteRepository;
     private readonly IMapper _mapper;
 
-    public QuestionRepoManager(
-        IQuestionRepoWriteRepository questionRepoWriteRepository,
-        IQuestionRepoReadRepository questionRepoReadRepository,
-        IQuestionReadRepository questionReadRepository,
-        IMapper mapper)
+    public QuestionRepoManager(IQuestionReadRepository questionReadRepository, IQuestionWriteRepository questionWriteRepository, IMapper mapper)
     {
-        _questionRepoWriteRepository = questionRepoWriteRepository;
-        _questionRepoReadRepository = questionRepoReadRepository;
         _questionReadRepository = questionReadRepository;
+        _questionWriteRepository = questionWriteRepository;
         _mapper = mapper;
     }
 
-    public async Task<bool> CreateAsync(CreateQuestionRepoRequest request)
+    public async Task<QuestionDetailResponse> CreateAsync(CreateQuestionRepoRequest request)
     {
-        var questionRepo = _mapper.Map<QuestionRepo>(request);
-        return await _questionRepoWriteRepository.AddAsync(questionRepo);
+        var question = _mapper.Map<Question>(request);
+        var result = await _questionWriteRepository.AddAsync(question);
+        if (!result)
+            throw new BusinessException("Failed to create question");
+
+        return _mapper.Map<QuestionDetailResponse>(question);
     }
 
-    public Task<List<QuestionRepoDTO>> CreateRangeAsync(List<CreateQuestionRepoRequest> requests)
+    public async Task DeleteAsync(DeleteQuestionRepoRequest request)
     {
-        var questionRepos = _mapper.Map<List<QuestionRepo>>(requests);
-        return _questionRepoWriteRepository.AddRangeAsync(questionRepos)
-            .ContinueWith(task => task.Result ? _mapper.Map<List<QuestionRepoDTO>>(questionRepos) : null);
+        var result = await _questionWriteRepository.RemoveById(request.Id);
+        if (!result)
+            throw new NotFoundException($"Question with ID {request.Id} not found.");
     }
 
-    public Task<bool> Delete(Guid id)
+    public bool DeleteRange(DeleteRangeQuestionRepoRequest request)
     {
-        return _questionRepoWriteRepository.RemoveById(id);
+        var questions = _questionReadRepository.GetWhere(x => request.Ids.Contains(x.Id)).ToList();
+        if (!questions.Any())
+            throw new NotFoundException("No questions found with the provided IDs.");
+        var result = _questionWriteRepository.RemoveRange(questions);
+        if (!result)
+            throw new BusinessException("Failed to delete questions.");
+        return result;
     }
 
-    public Task<bool> DeleteRange(List<Guid> ids)
+    public List<QuestionDetailResponse> GetAll(GetQuestionReposRequest request)
     {
-        var questionRepos = _questionRepoReadRepository.GetWhere(qr => ids.Contains(qr.Id)).ToList();
-        if (questionRepos == null || !questionRepos.Any())
+        var questions = _questionReadRepository.GetAll().ToList();
+        return _mapper.Map<List<QuestionDetailResponse>>(questions);
+    }
+
+    public List<QuestionDetailResponse> GetByCategory(GetQuestionReposByCategoryRequest request)
+    {
+        var questions = _questionReadRepository.GetWhere(x => x.QuestionRepoId == request.CategoryId).ToList();
+        return _mapper.Map<List<QuestionDetailResponse>>(questions);
+    }
+
+    public async Task<QuestionDetailResponse> GetByIdAsync(GetQuestionRepoByIdRequest request)
+    {
+        try
         {
-            return Task.FromResult(false);
+            var question = await _questionReadRepository.GetByIdAsync(request.Id);
+            return _mapper.Map<QuestionDetailResponse>(question);
         }
-        return Task.FromResult(_questionRepoWriteRepository.RemoveRange(questionRepos));
-    }
-
-    public Task<List<QuestionRepoDTO>> GetAll()
-    {
-        var questionRepos = _questionRepoReadRepository.GetAll();
-        if (questionRepos == null || !questionRepos.Any())
+        catch (InvalidOperationException)
         {
-            return Task.FromResult(new List<QuestionRepoDTO>());
+            throw new NotFoundException($"Question with ID {request.Id} not found.");
         }
-        return Task.FromResult(_mapper.Map<List<QuestionRepoDTO>>(questionRepos));
     }
 
-    public Task<QuestionRepoDTO> GetById(Guid id)
+    public QuestionDetailResponse Update(UpdateQuestionRepoRequest request)
     {
-        var questionRepo = _questionRepoReadRepository.GetByIdAsync(id).Result;
-        if (questionRepo == null)
+        try
         {
-            return Task.FromResult<QuestionRepoDTO>(null);
-        }
-        return Task.FromResult(_mapper.Map<QuestionRepoDTO>(questionRepo));
-    }
+            var question = _questionReadRepository.GetByIdAsync(request.Id).Result;
+            _mapper.Map(request, question);
+            var result = _questionWriteRepository.Update(question);
+            if (!result)
+                throw new BusinessException($"Failed to update question with ID {request.Id}");
 
-    public Task<QuestionRepoDTO> Update(UpdateQuestionRepoRequest request)
-    {
-        var questionRepo = _mapper.Map<QuestionRepo>(request);
-        if (_questionRepoWriteRepository.Update(questionRepo))
+            return _mapper.Map<QuestionDetailResponse>(question);
+        }
+        catch (InvalidOperationException)
         {
-            return Task.FromResult(_mapper.Map<QuestionRepoDTO>(questionRepo));
+            throw new NotFoundException($"Question with ID {request.Id} not found.");
         }
-        throw new Exception("QuestionRepo update failed.");
     }
-
-    public Task<List<QuestionRepoDTO>> GetByCreatorId(Guid creatorId)
-    {
-        var questionRepos = _questionRepoReadRepository.GetWhere(qr => qr.CreatorId == creatorId).ToList();
-        return Task.FromResult(_mapper.Map<List<QuestionRepoDTO>>(questionRepos));
-    }
-
-    public Task<List<QuestionRepoDTO>> GetPublicRepos()
-    {
-        var questionRepos = _questionRepoReadRepository.GetWhere(qr => qr.IsPublic && qr.IsActive).ToList();
-        return Task.FromResult(_mapper.Map<List<QuestionRepoDTO>>(questionRepos));
-    }
-
-    public async Task<bool> CanAddQuestion(Guid repoId)
-    {
-        var questionRepo = await _questionRepoReadRepository.GetByIdAsync(repoId);
-        if (questionRepo == null || !questionRepo.IsActive)
-            return false;
-
-        var questionCount = await _questionReadRepository.GetWhere(q => q.QuestionRepoId == repoId).CountAsync();
-        return questionCount < questionRepo.MaxQuestions;
-    }
-
-    public async Task<bool> MakePublic(Guid repoId)
-    {
-        var questionRepo = await _questionRepoReadRepository.GetByIdAsync(repoId);
-        if (questionRepo == null)
-            return false;
-
-        questionRepo.IsPublic = true;
-        return _questionRepoWriteRepository.Update(questionRepo);
-    }
-
-    public async Task<bool> MakePrivate(Guid repoId)
-    {
-        var questionRepo = await _questionRepoReadRepository.GetByIdAsync(repoId);
-        if (questionRepo == null)
-            return false;
-
-        questionRepo.IsPublic = false;
-        return _questionRepoWriteRepository.Update(questionRepo);
-    }
-
-    public async Task<bool> ActivateRepo(Guid repoId)
-    {
-        var questionRepo = await _questionRepoReadRepository.GetByIdAsync(repoId);
-        if (questionRepo == null)
-            return false;
-
-        questionRepo.IsActive = true;
-        return _questionRepoWriteRepository.Update(questionRepo);
-    }
-
-    public async Task<bool> DeactivateRepo(Guid repoId)
-    {
-        var questionRepo = await _questionRepoReadRepository.GetByIdAsync(repoId);
-        if (questionRepo == null)
-            return false;
-
-        questionRepo.IsActive = false;
-        return _questionRepoWriteRepository.Update(questionRepo);
-    }
-
-    public async Task<int> GetQuestionCount(Guid repoId)
-    {
-        return await _questionReadRepository.GetWhere(q => q.QuestionRepoId == repoId).CountAsync();
-    }
-} 
+}

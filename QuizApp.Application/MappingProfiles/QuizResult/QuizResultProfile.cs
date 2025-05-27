@@ -3,7 +3,7 @@ using QuizApp.Application.DTOs.Requests.QuizResult;
 using QuizApp.Application.DTOs.Responses.QuizResult;
 using QuizApp.Domain.Entities;
 
-namespace QuizApp.Application.MappingProfiles.QuizResult;
+namespace QuizApp.Application.MappingProfiles;
 
 public class QuizResultProfile : Profile
 {
@@ -17,4 +17,4 @@ public class QuizResultProfile : Profile
         CreateMap<QuizResult, GetQuizResultsByUserRequest>().ReverseMap();
         CreateMap<QuizResult, GetQuizResultsByQuizRequest>().ReverseMap();
     }
-} 
+}

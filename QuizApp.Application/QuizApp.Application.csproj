@@ -18,14 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\Responses\Category\" />
-    <Folder Include="DTOs\Responses\Option\" />
     <Folder Include="DTOs\Responses\QuestionRepo\" />
-    <Folder Include="DTOs\Responses\Question\" />
-    <Folder Include="DTOs\Responses\QuizResult\" />
-    <Folder Include="DTOs\Responses\Quiz\" />
-    <Folder Include="DTOs\Responses\UserAnswer\" />
-    <Folder Include="DTOs\Responses\User\" />
     <Folder Include="Repositories\QuizResult\" />
     <Folder Include="Repositories\Quiz\" />
     <Folder Include="Repositories\Question\" />

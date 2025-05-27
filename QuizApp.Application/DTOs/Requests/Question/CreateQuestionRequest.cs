@@ -1,13 +1,31 @@
 using QuizApp.Application.DTOs.Requests.Option;
+using QuizApp.Domain.Entities;
+using QuizApp.Domain.Enums;
 
-namespace QuizApp.Application.DTOs.Requests.Question;
-
-public record CreateQuestionRequest
+namespace QuizApp.Application.DTOs.Requests.Question
 {
-    public string Text { get; set; }
-    public string Explanation { get; set; }
-    public int Points { get; set; }
-    public Guid QuizId { get; set; }
-    public Guid? QuestionRepoId { get; set; }
-    public List<CreateOptionRequest> Options { get; set; }
+    public record CreateQuestionRequest
+    {
+        public string QuestionText { get; set; }
+        public int Points { get; set; }
+        public Guid QuizId { get; set; }
+        public Guid? QuestionRepoId { get; set; }
+        public Guid QuestionTypeId { get; set; }
+        public int OrderIndex { get; set; }
+        public List<CreateOptionRequest> Options { get; set; }
+
+        public Domain.Entities.Question ToEntity()
+        {
+            return new Domain.Entities.Question
+            {
+                QuestionText = QuestionText,
+                Points = Points,
+                QuizId = QuizId,
+                QuestionRepoId = QuestionRepoId,
+                QuestionTypeId = QuestionTypeId,
+                OrderIndex = OrderIndex,
+                IsActive = true
+            };
+        }
+    }
 }

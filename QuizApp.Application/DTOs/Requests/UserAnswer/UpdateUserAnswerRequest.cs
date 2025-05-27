@@ -2,9 +2,9 @@
 
 public record UpdateUserAnswerRequest
 {
-    public int Id { get; init; }
-    public int QuizResultId { get; init; }
-    public int QuestionId { get; init; }
-    public string Answer { get; init; } = string.Empty;
-    public bool IsCorrect { get; init; }
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public Guid QuestionId { get; set; }
+    public Guid OptionId { get; set; }
+    public string? AnswerText { get; set; }
 }

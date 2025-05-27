@@ -16,5 +16,10 @@ public class CategoryProfile : Profile
         CreateMap<Category, DeleteRangeCategoryRequest>().ReverseMap();
         CreateMap<Category, UpdateCategoryRequest>().ReverseMap();
         CreateMap<Category, UpdateRangeCategoryRequest>().ReverseMap();
+        CreateMap<Category, GetCategoryByIdRequest>().ReverseMap();
+        CreateMap<Category, GetCategoriesRequest>().ReverseMap();
+        CreateMap<Category, CategoryDetailResponse>()
+            .ForMember(dest => dest.Quizzes, opt => opt.MapFrom(src => src.Quizzes));
+        CreateMap<Quiz, QuizSummaryResponse>();
     }
 }

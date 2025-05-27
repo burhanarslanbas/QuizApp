@@ -20,4 +20,8 @@
     <ProjectReference Include="..\..\QuizApp.Application\QuizApp.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>

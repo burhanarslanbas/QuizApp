@@ -13,10 +13,10 @@ namespace QuizApp.Domain.Entities
         public Guid QuizId { get; set; } // Bağlı olduğu quiz ID'si
         public Guid QuestionTypeId { get; set; } // Soru tipi ID'si
         public Guid? QuestionRepoId { get; set; } // Bağlı olduğu soru havuzu ID'si
-        public QuestionType QuestionType { get; set; } = default!; // Soru tipi
         public string QuestionText { get; set; } = default!; // Soru metni
         public int Points { get; set; } = 1; // Soru puanı
         public int OrderIndex { get; set; } // Soru sırası
+        public bool IsActive { get; set; } = true; // Soru aktif mi?
 
         // Navigation Properties
         public virtual Quiz? Quiz { get; set; } // Bağlı olduğu quiz

@@ -1,3 +1,6 @@
 namespace QuizApp.Application.DTOs.Requests.UserAnswer;
 
-public record DeleteRangeUserAnswerRequest(List<Guid> Ids);
+public record DeleteRangeUserAnswerRequest
+{
+    public List<Guid> Ids { get; set; }
+}

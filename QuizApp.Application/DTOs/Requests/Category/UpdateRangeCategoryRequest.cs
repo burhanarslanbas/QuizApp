@@ -1,4 +1,7 @@
-﻿namespace QuizApp.Application.DTOs.Requests.Category
+﻿namespace QuizApp.Application.DTOs.Requests.Category;
+
+public record UpdateRangeCategoryRequest
 {
-    public record UpdateRangeCategoryRequest(List<UpdateCategoryRequest> Categories);
+    public List<Guid> Ids { get; set; }
+    public List<UpdateCategoryRequest> Categories { get; set; }
 }

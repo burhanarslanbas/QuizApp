@@ -8,34 +8,32 @@ namespace QuizApp.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Question> builder)
         {
-            builder.HasKey(e => e.Id);
-            builder.Property(e => e.QuestionText).HasColumnName("QuestionText").IsRequired().HasMaxLength(1000);
-            builder.Property(e => e.Points).HasColumnName("Points").IsRequired().HasDefaultValue(1);
-            builder.Property(e => e.OrderIndex).HasColumnName("OrderIndex").IsRequired();
-            builder.Property(e => e.QuestionType).HasColumnName("QuestionType").IsRequired();
-            builder.Property(e => e.CreatedDate).HasColumnName("CreatedDate").IsRequired();
-            builder.Property(e => e.UpdatedDate).HasColumnName("UpdatedDate");
+            builder.HasKey(q => q.Id);
+            builder.Property(q => q.QuestionText).IsRequired();
+            builder.Property(q => q.Points).IsRequired();
+            builder.Property(q => q.OrderIndex).IsRequired();
+            builder.Property(q => q.IsActive).IsRequired();
+            builder.Property(q => q.QuestionTypeId).IsRequired();
 
-            // Relationships
-            builder.HasOne(e => e.Quiz)
-                .WithMany(e => e.Questions)
-                .HasForeignKey(e => e.QuizId)
+            builder.HasOne(q => q.Quiz)
+                .WithMany(q => q.Questions)
+                .HasForeignKey(q => q.QuizId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(e => e.QuestionRepo)
-                .WithMany(e => e.Questions)
-                .HasForeignKey(e => e.QuestionRepoId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(q => q.QuestionRepo)
+                .WithMany(q => q.Questions)
+                .HasForeignKey(q => q.QuestionRepoId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            builder.HasMany(e => e.Options)
-                .WithOne(e => e.Question)
-                .HasForeignKey(e => e.QuestionId)
+            builder.HasMany(q => q.Options)
+                .WithOne(o => o.Question)
+                .HasForeignKey(o => o.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(e => e.UserAnswers)
-                .WithOne(e => e.Question)
-                .HasForeignKey(e => e.QuestionId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasMany(q => q.UserAnswers)
+                .WithOne(ua => ua.Question)
+                .HasForeignKey(ua => ua.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 } 

@@ -1,3 +1,6 @@
 namespace QuizApp.Application.DTOs.Requests.Quiz;
 
-public record DeleteQuizRequest(Guid Id);
+public record DeleteQuizRequest
+{
+    public Guid Id { get; set; }
+}

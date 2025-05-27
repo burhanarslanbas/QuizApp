@@ -1,6 +1,8 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using QuizApp.Application.DTOs.Requests.UserAnswer;
-using QuizApp.Application.DTOs.Requests.UserAnswer.Read;
+using QuizApp.Application.DTOs.Responses.UserAnswer;
+using QuizApp.Application.Exceptions;
 using QuizApp.Application.Repositories;
 using QuizApp.Application.Services;
 using QuizApp.Domain.Entities;
@@ -9,147 +11,87 @@ namespace QuizApp.Infrastructure.Managers;
 
 public class UserAnswerManager : IUserAnswerService
 {
-    private readonly IUserAnswerWriteRepository _userAnswerWriteRepository;
     private readonly IUserAnswerReadRepository _userAnswerReadRepository;
-    private readonly IQuestionReadRepository _questionReadRepository;
-    private readonly IOptionReadRepository _optionReadRepository;
+    private readonly IUserAnswerWriteRepository _userAnswerWriteRepository;
     private readonly IMapper _mapper;
 
-    public UserAnswerManager(
-        IUserAnswerWriteRepository userAnswerWriteRepository,
-        IUserAnswerReadRepository userAnswerReadRepository,
-        IQuestionReadRepository questionReadRepository,
-        IOptionReadRepository optionReadRepository,
-        IMapper mapper)
+    public UserAnswerManager(IUserAnswerReadRepository userAnswerReadRepository, IUserAnswerWriteRepository userAnswerWriteRepository, IMapper mapper)
     {
-        _userAnswerWriteRepository = userAnswerWriteRepository;
         _userAnswerReadRepository = userAnswerReadRepository;
-        _questionReadRepository = questionReadRepository;
-        _optionReadRepository = optionReadRepository;
+        _userAnswerWriteRepository = userAnswerWriteRepository;
         _mapper = mapper;
     }
 
-    public async Task<bool> CreateAsync(CreateUserAnswerRequest request)
+    public async Task<UserAnswerDetailResponse> CreateAsync(CreateUserAnswerRequest request)
     {
         var userAnswer = _mapper.Map<UserAnswer>(request);
-        return await _userAnswerWriteRepository.AddAsync(userAnswer);
+        var result = await _userAnswerWriteRepository.AddAsync(userAnswer);
+        if (!result)
+            throw new BusinessException("Failed to create user answer");
+
+        return _mapper.Map<UserAnswerDetailResponse>(userAnswer);
     }
 
-    public Task<List<UserAnswerDTO>> CreateRangeAsync(List<CreateUserAnswerRequest> requests)
+    public async Task DeleteAsync(DeleteUserAnswerRequest request)
     {
-        var userAnswers = _mapper.Map<List<UserAnswer>>(requests);
-        return _userAnswerWriteRepository.AddRangeAsync(userAnswers)
-            .ContinueWith(task => task.Result ? _mapper.Map<List<UserAnswerDTO>>(userAnswers) : null);
+        var result = await _userAnswerWriteRepository.RemoveById(request.Id);
+        if (!result)
+            throw new NotFoundException($"User answer with ID {request.Id} not found.");
     }
 
-    public Task<bool> Delete(Guid id)
+    public bool DeleteRange(DeleteRangeUserAnswerRequest request)
     {
-        return _userAnswerWriteRepository.RemoveById(id);
+        var userAnswers = _userAnswerReadRepository.GetWhere(x => request.Ids.Contains(x.Id)).ToList();
+        if (!userAnswers.Any())
+            throw new NotFoundException("No user answers found with the provided IDs.");
+
+        var result = _userAnswerWriteRepository.RemoveRange(userAnswers);
+        if (!result)
+            throw new BusinessException("Failed to delete user answers.");
+
+        return result;
     }
 
-    public Task<bool> DeleteRange(List<Guid> ids)
+    public List<UserAnswerDetailResponse> GetAll(GetUserAnswersRequest request)
     {
-        var userAnswers = _userAnswerReadRepository.GetWhere(ua => ids.Contains(ua.Id)).ToList();
-        if (userAnswers == null || !userAnswers.Any())
+        var userAnswers = _userAnswerReadRepository.GetAll().ToList();
+        return _mapper.Map<List<UserAnswerDetailResponse>>(userAnswers);
+    }
+
+    public async Task<UserAnswerDetailResponse> GetByIdAsync(GetUserAnswerByIdRequest request)
+    {
+        try
         {
-            return Task.FromResult(false);
+            var userAnswer = await _userAnswerReadRepository.GetByIdAsync(request.Id);
+            return _mapper.Map<UserAnswerDetailResponse>(userAnswer);
         }
-        return Task.FromResult(_userAnswerWriteRepository.RemoveRange(userAnswers));
-    }
-
-    public Task<List<UserAnswerDTO>> GetAll()
-    {
-        var userAnswers = _userAnswerReadRepository.GetAll();
-        if (userAnswers == null || !userAnswers.Any())
+        catch (InvalidOperationException)
         {
-            return Task.FromResult(new List<UserAnswerDTO>());
-        }
-        return Task.FromResult(_mapper.Map<List<UserAnswerDTO>>(userAnswers));
-    }
-
-    public Task<UserAnswerDTO> GetById(Guid id)
-    {
-        var userAnswer = _userAnswerReadRepository.GetByIdAsync(id).Result;
-        if (userAnswer == null)
-        {
-            return Task.FromResult<UserAnswerDTO>(null);
-        }
-        return Task.FromResult(_mapper.Map<UserAnswerDTO>(userAnswer));
-    }
-
-    public Task<UserAnswerDTO> Update(UpdateUserAnswerRequest request)
-    {
-        var userAnswer = _mapper.Map<UserAnswer>(request);
-        if (_userAnswerWriteRepository.Update(userAnswer))
-        {
-            return Task.FromResult(_mapper.Map<UserAnswerDTO>(userAnswer));
-        }
-        throw new Exception("UserAnswer update failed.");
-    }
-
-    public Task<List<UserAnswerDTO>> GetByQuizResultId(Guid quizResultId)
-    {
-        var userAnswers = _userAnswerReadRepository.GetWhere(ua => ua.QuizResultId == quizResultId).ToList();
-        return Task.FromResult(_mapper.Map<List<UserAnswerDTO>>(userAnswers));
-    }
-
-    public Task<List<UserAnswerDTO>> GetByQuestionId(Guid questionId)
-    {
-        var userAnswers = _userAnswerReadRepository.GetWhere(ua => ua.QuestionId == questionId).ToList();
-        return Task.FromResult(_mapper.Map<List<UserAnswerDTO>>(userAnswers));
-    }
-
-    public async Task<bool> ValidateAnswer(Guid userAnswerId)
-    {
-        var userAnswer = await _userAnswerReadRepository.GetByIdAsync(userAnswerId);
-        if (userAnswer == null)
-            return false;
-
-        var question = await _questionReadRepository.GetByIdAsync(userAnswer.QuestionId);
-        if (question == null)
-            return false;
-
-        switch (question.QuestionType)
-        {
-            case QuestionType.SingleChoice:
-            case QuestionType.MultipleChoice:
-                if (!userAnswer.OptionId.HasValue)
-                    return false;
-                var option = await _optionReadRepository.GetByIdAsync(userAnswer.OptionId.Value);
-                return option?.IsCorrect ?? false;
-
-            case QuestionType.Text:
-                // TODO: Implement text answer validation
-                return false;
-
-            default:
-                return false;
+            throw new NotFoundException($"User answer with ID {request.Id} not found.");
         }
     }
 
-    public async Task<int> CalculateScore(Guid quizResultId)
+    public List<UserAnswerDetailResponse> GetByQuizResult(GetUserAnswersByQuizResultRequest request)
     {
-        var userAnswers = await _userAnswerReadRepository.GetWhere(ua => ua.QuizResultId == quizResultId).ToListAsync();
-        var totalScore = 0;
+        var userAnswers = _userAnswerReadRepository.GetWhere(x => x.QuizResultId == request.QuizResultId).ToList();
+        return _mapper.Map<List<UserAnswerDetailResponse>>(userAnswers);
+    }
 
-        foreach (var userAnswer in userAnswers)
+    public UserAnswerDetailResponse Update(UpdateUserAnswerRequest request)
+    {
+        try
         {
-            if (userAnswer.IsCorrect)
-            {
-                var question = await _questionReadRepository.GetByIdAsync(userAnswer.QuestionId);
-                if (question != null)
-                {
-                    totalScore += question.Points;
-                }
-            }
+            var userAnswer = _userAnswerReadRepository.GetByIdAsync(request.Id).Result;
+            _mapper.Map(request, userAnswer);
+            var result = _userAnswerWriteRepository.Update(userAnswer);
+            if (!result)
+                throw new BusinessException($"Failed to update user answer with ID {request.Id}");
+
+            return _mapper.Map<UserAnswerDetailResponse>(userAnswer);
         }
-
-        return totalScore;
+        catch (InvalidOperationException)
+        {
+            throw new NotFoundException($"User answer with ID {request.Id} not found.");
+        }
     }
-
-    public async Task<Dictionary<Guid, bool>> GetAnswerResults(Guid quizResultId)
-    {
-        var userAnswers = await _userAnswerReadRepository.GetWhere(ua => ua.QuizResultId == quizResultId).ToListAsync();
-        return userAnswers.ToDictionary(ua => ua.QuestionId, ua => ua.IsCorrect);
-    }
-} 
+}
