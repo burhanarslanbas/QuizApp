@@ -1,7 +1,7 @@
 ﻿using QuizApp.Domain.Entities.Common;
 
-namespace QuizApp.Application.Repositories
-{
+namespace QuizApp.Application.Repositories;
+
     public interface IWriteRepository<T> : IRepository<T> where T : BaseEntity
     {
         Task<bool> AddAsync(T model);
@@ -12,4 +12,3 @@ namespace QuizApp.Application.Repositories
         bool Update(T model);
         Task<int> SaveAsync();
     }
-}
