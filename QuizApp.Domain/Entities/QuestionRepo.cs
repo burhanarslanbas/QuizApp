@@ -1,4 +1,5 @@
 ﻿using QuizApp.Domain.Entities.Common;
+using QuizApp.Domain.Entities.Identity;
 
 namespace QuizApp.Domain.Entities
 {
@@ -18,6 +19,6 @@ namespace QuizApp.Domain.Entities
 
         // Navigation Properties
         public virtual ICollection<Question> Questions { get; set; } // Soru listesi
-        public virtual User Creator { get; set; } = default!; // Oluşturan kullanıcı
+        public virtual AppUser Creator { get; set; } = default!; // Oluşturan kullanıcı
     }
 }

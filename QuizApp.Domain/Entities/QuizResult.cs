@@ -1,4 +1,5 @@
 using QuizApp.Domain.Entities.Common;
+using QuizApp.Domain.Entities.Identity;
 
 namespace QuizApp.Domain.Entities
 {
@@ -15,7 +16,7 @@ namespace QuizApp.Domain.Entities
 
         // Navigation Properties
         public virtual Quiz Quiz { get; set; } = default!; // Çözülen quiz
-        public virtual User Student { get; set; } = default!; // Quiz'i çözen öğrenci
+        public virtual AppUser Student { get; set; } = default!; // Quiz'i çözen öğrenci
         public virtual ICollection<UserAnswer> StudentAnswers { get; set; } // Verilen cevaplar
     }
 }

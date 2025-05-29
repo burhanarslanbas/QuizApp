@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using QuizApp.Application.Repositories;
+using QuizApp.Domain.Entities.Identity;
 using QuizApp.Persistence.Contexts;
 using QuizApp.Persistence.Repositories;
 
@@ -16,6 +17,10 @@ namespace QuizApp.Persistence
                 options.UseSqlServer("Server=BURHAN;Database=QuizAppDB;Trusted_Connection=True;TrustServerCertificate=True;");
             });
 
+            // Identity Configuration
+            services.AddIdentity<AppUser, AppRole>().AddEntityFrameworkStores<QuizAppDbContext>();
+
+            // Repositories Configuration
             services.AddScoped<ICategoryReadRepository, CategoryReadRepository>();
             services.AddScoped<ICategoryWriteRepository, CategoryWriteRepository>();
 
@@ -33,9 +38,6 @@ namespace QuizApp.Persistence
 
             services.AddScoped<IQuizResultReadRepository, QuizResultReadRepository>();
             services.AddScoped<IQuizResultWriteRepository, QuizResultWriteRepository>();
-
-            services.AddScoped<IUserReadRepository, UserReadRepository>();
-            services.AddScoped<IUserWriteRepository, UserWriteRepository>();
 
             services.AddScoped<IUserAnswerReadRepository, UserAnswerReadRepository>();
             services.AddScoped<IUserAnswerWriteRepository, UserAnswerWriteRepository>();

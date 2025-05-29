@@ -1,12 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using QuizApp.Domain.Entities;
 using QuizApp.Domain.Entities.Common;
+using QuizApp.Domain.Entities.Identity;
 using QuizApp.Persistence.Configurations;
 
 namespace QuizApp.Persistence.Contexts
 {
-    public class QuizAppDbContext : DbContext
+    public class QuizAppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     {
         public QuizAppDbContext(DbContextOptions<QuizAppDbContext> options) : base(options)
         { }
@@ -17,7 +19,6 @@ namespace QuizApp.Persistence.Contexts
         public DbSet<UserAnswer> UserAnswers { get; set; }
         public DbSet<QuizResult> QuizResults { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<User> Users { get; set; }
         public DbSet<QuestionRepo> QuestionRepos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -30,7 +31,6 @@ namespace QuizApp.Persistence.Contexts
             builder.ApplyConfiguration(new UserAnswerConfiguration());
             builder.ApplyConfiguration(new QuizResultConfiguration());
             builder.ApplyConfiguration(new CategoryConfiguration());
-            builder.ApplyConfiguration(new UserConfiguration());
             builder.ApplyConfiguration(new QuestionRepoConfiguration());
         }
 

@@ -1,4 +1,5 @@
 using QuizApp.Domain.Entities.Common;
+using QuizApp.Domain.Entities.Identity;
 
 namespace QuizApp.Domain.Entities;
 
@@ -22,7 +23,7 @@ public class Quiz : BaseEntity
     public bool ShowResults { get; set; } = true; // Sonuçları gösterme
 
     // Navigation Properties
-    public virtual User Creator { get; set; } = null!; // Quiz'i oluşturan kullanıcı
+    public virtual AppUser Creator { get; set; } = null!; // Quiz'i oluşturan kullanıcı
     public virtual Category Category { get; set; } = null!; // Quiz kategorisi
     public virtual ICollection<Question> Questions { get; set; } // Quiz soruları
     public virtual ICollection<QuizResult> QuizResults { get; set; } // Quiz sonuçları

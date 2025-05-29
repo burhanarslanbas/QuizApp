@@ -9,11 +9,14 @@ public class OptionProfile : Profile
 {
     public OptionProfile()
     {
+        // Basic CRUD mappings
         CreateMap<Option, OptionDTO>().ReverseMap();
         CreateMap<Option, CreateOptionRequest>().ReverseMap();
         CreateMap<Option, UpdateOptionRequest>().ReverseMap();
         CreateMap<Option, DeleteOptionRequest>().ReverseMap();
         CreateMap<Option, GetOptionByIdRequest>().ReverseMap();
-        CreateMap<Option, GetOptionsByQuestionRequest>().ReverseMap();
+
+        // Detail response mapping
+        CreateMap<Option, OptionDetailResponse>();
     }
 }

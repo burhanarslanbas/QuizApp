@@ -22,7 +22,6 @@
     <Folder Include="Repositories\QuizResult\" />
     <Folder Include="Repositories\Quiz\" />
     <Folder Include="Repositories\Question\" />
-    <Folder Include="Repositories\User\" />
   </ItemGroup>
 
 </Project>

@@ -11,20 +11,19 @@ public class QuizProfile : Profile
 {
     public QuizProfile()
     {
+        // Basic CRUD mappings
         CreateMap<Quiz, QuizDTO>().ReverseMap();
         CreateMap<Quiz, CreateQuizRequest>().ReverseMap();
         CreateMap<Quiz, UpdateQuizRequest>().ReverseMap();
         CreateMap<Quiz, DeleteQuizRequest>().ReverseMap();
         CreateMap<Quiz, GetQuizByIdRequest>().ReverseMap();
-        CreateMap<Quiz, GetQuizzesByCategoryRequest>().ReverseMap();
-        CreateMap<Quiz, GetActiveQuizzesRequest>().ReverseMap();
-        CreateMap<Quiz, DeleteRangeQuizRequest>().ReverseMap();
-        CreateMap<Quiz, GetQuizzesRequest>().ReverseMap();
 
+        // Detail response mapping
         CreateMap<Quiz, QuizDetailResponse>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
             .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Questions));
 
+        // Related entity mappings
         CreateMap<Question, QuestionDetailResponse>()
             .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.Options));
 
