@@ -1,18 +1,41 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+﻿using FluentValidation;
 using Microsoft.OpenApi.Models;
 using QuizApp.Application;
-using QuizApp.Application.Validators.Auth;
+using QuizApp.Application.Options;
+using QuizApp.Application.Validators.Role;
 using QuizApp.Infrastructure;
+using QuizApp.Infrastructure.Middleware;
 using QuizApp.Persistence;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DI IoC
-builder.Services.AddPersistenceServices();
-builder.Services.AddInfrastructureServices();
+// Service Registrations
+builder.Services.AddPersistenceServices(builder.Configuration);
+builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+
+// Configure TokenOptions
+builder.Services.Configure<TokenOptions>(builder.Configuration.GetSection("Token"));
+
+// Globalization configuration
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(System.Globalization.CultureInfo.InvariantCulture);
+    options.SupportedCultures = new List<System.Globalization.CultureInfo> { System.Globalization.CultureInfo.InvariantCulture };
+    options.SupportedUICultures = new List<System.Globalization.CultureInfo> { System.Globalization.CultureInfo.InvariantCulture };
+});
+
+// Core Services
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new UtcDateTimeConverter());
+    });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddMemoryCache();
+
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<CreateRoleRequestValidator>();
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
      .WithOrigins("https://localhost:3000", "http://localhost:3000") // React uygulamasının çalıştığı adresler
@@ -20,21 +43,17 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
      .AllowAnyMethod() // Herhangi bir HTTP metoduna izin ver
 ));
 
-builder.Services.AddControllers();
-
-builder.Services.AddEndpointsApiExplorer();
-
 // Swagger yapılandırması
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "QuizApp API", Version = "v1" });
-    
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme",
+        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
+        Type = SecuritySchemeType.Http,
         Scheme = "Bearer"
     });
 
@@ -54,47 +73,22 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// JWT Authentication yapılandırması
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new()
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-
-            ValidAudience = builder.Configuration["Token:Audience"],
-            ValidIssuer = builder.Configuration["Token:Issuer"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Token:SecurityKey"]))
-        };
-    });
-
-// Rol bazlı yetkilendirme politikaları
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireAdminRole", policy => 
-        policy.RequireRole("Admin"));
-    
-    options.AddPolicy("RequireTeacherRole", policy => 
-        policy.RequireRole("Teacher"));
-    
-    options.AddPolicy("RequireStudentRole", policy => 
-        policy.RequireRole("Student"));
-});
-
 var app = builder.Build();
 
+// Middleware Pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseRequestLocalization();
 app.UseCors(); // CORS ayarlarını uygulamak için UseCors() metodunu çağırıyoruz
 
 app.UseHttpsRedirection();
+
+// Add exception handling middleware (should be before authentication/authorization)
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Authentication ve Authorization sıralaması
 app.UseAuthentication();
