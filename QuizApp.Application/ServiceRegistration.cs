@@ -1,13 +1,18 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace QuizApp.Application;
-
-public static class ServiceRegistration
+namespace QuizApp.Application
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    public static class ServiceRegistration
     {
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
-        return services;
+        public static void AddApplicationServices(this IServiceCollection services)
+        {
+            // AutoMapper Configuration
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
+            // FluentValidation Configuration
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        }
     }
 }

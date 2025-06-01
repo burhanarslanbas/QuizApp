@@ -1,11 +1,17 @@
-namespace QuizApp.Application.DTOs.Responses.Auth
+namespace QuizApp.Application.DTOs.Responses.Auth;
+
+public class RegisterResponse
 {
-    public class RegisterResponse
-    {
-        public bool Succeeded { get; set; }
-        public string Message { get; set; }
-        public Guid UserId { get; set; }
-        public string UserName { get; set; }
-        public string Email { get; set; }
-    }
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
+
+public class RegisterSuccessResponse : RegisterResponse
+{
+    public UserInfo UserInfo { get; set; } = new();
+}
+
+public class RegisterErrorResponse : RegisterResponse
+{
+    public List<string> Errors { get; set; } = new();
 }

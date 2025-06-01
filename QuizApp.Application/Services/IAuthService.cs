@@ -7,5 +7,7 @@ namespace QuizApp.Application.Services
     {
         Task<RegisterResponse> RegisterAsync(RegisterRequest request);
         Task<LoginResponse> LoginAsync(LoginRequest request);
+        Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request);
+        Task<LoginResponse> RevokeTokenAsync(RevokeTokenRequest request);
     }
 }
