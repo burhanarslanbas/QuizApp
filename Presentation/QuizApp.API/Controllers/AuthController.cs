@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using QuizApp.Application.DTOs.Requests.Auth;
-using QuizApp.Application.DTOs.Responses.Auth;
 using QuizApp.Application.Services;
 
 namespace QuizApp.API.Controllers
@@ -16,35 +15,24 @@ namespace QuizApp.API.Controllers
             _authService = authService;
         }
 
+        /// <summary>
+        /// Yeni bir kullanıcı kaydı oluşturur
+        /// </summary>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             var result = await _authService.RegisterAsync(request);
-
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-
             return Ok(result);
         }
 
+        /// <summary>
+        /// Kullanıcı girişi yapar
+        /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            LoginResponse response = await _authService.LoginAsync(request);
-            if (response is LoginErrorResponse errorResponse)
-            {
-                return StatusCode(errorResponse.StatusCode, errorResponse.ErrorMessage);
-            }
-            else if (response is LoginSuccessResponse successResponse)
-            {
-                return Ok(successResponse);
-            }
-            else
-            {
-                return StatusCode(500, "Unknown error occurred during login.");
-            }
+            var result = await _authService.LoginAsync(request);
+            return Ok(result);
         }
     }
 }
