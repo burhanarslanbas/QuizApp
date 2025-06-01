@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 using QuizApp.Domain.Entities;
 using QuizApp.Domain.Entities.Common;
 using QuizApp.Domain.Entities.Identity;
@@ -25,11 +26,12 @@ namespace QuizApp.Persistence.Contexts
         {
             base.OnModelCreating(builder);
             // Entity konfigürasyonlarını uygula
+            // builder.ApplyConfiguration(new AppUserConfiguration());
             builder.ApplyConfiguration(new QuizConfiguration());
             builder.ApplyConfiguration(new QuestionConfiguration());
             builder.ApplyConfiguration(new OptionConfiguration());
-            builder.ApplyConfiguration(new UserAnswerConfiguration());
             builder.ApplyConfiguration(new QuizResultConfiguration());
+            builder.ApplyConfiguration(new UserAnswerConfiguration());
             builder.ApplyConfiguration(new CategoryConfiguration());
             builder.ApplyConfiguration(new QuestionRepoConfiguration());
         }
@@ -56,12 +58,32 @@ namespace QuizApp.Persistence.Contexts
             return await base.SaveChangesAsync(cancellationToken);
         }
     }
+
     public class QuizAppDbContextFactory : IDesignTimeDbContextFactory<QuizAppDbContext>
     {
         public QuizAppDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<QuizAppDbContext>();
-            optionsBuilder.UseSqlServer("Server=BURHAN;Database=QuizAppDB;Trusted_Connection=True;TrustServerCertificate=True;",
+            
+            // Varsayılan olarak Development
+            var environment = "Development";
+            // Komut satırı argümanlarından environment'ı bul
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (args[i] == "--environment" && !string.IsNullOrEmpty(args[i + 1]))
+                {
+                    environment = args[i + 1];
+                    break;
+                }
+            }
+
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(System.IO.Path.GetFullPath(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "Presentation", "QuizApp.API")))
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{environment}.json", optional: true)
+                .Build();
+
+            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
                 options => options.EnableRetryOnFailure());
 
             return new QuizAppDbContext(optionsBuilder.Options);

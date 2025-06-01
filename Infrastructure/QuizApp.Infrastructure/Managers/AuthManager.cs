@@ -1,88 +1,114 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using QuizApp.Application.DTOs.Requests.Auth;
 using QuizApp.Application.DTOs.Responses.Auth;
-using QuizApp.Application.DTOs.Responses.Token;
+using QuizApp.Application.Options;
 using QuizApp.Application.Services;
 using QuizApp.Application.Services.Token;
+using QuizApp.Domain.Constants;
 using QuizApp.Domain.Entities.Identity;
 
-namespace QuizApp.Infrastructure.Managers
-{
-    public class AuthManager : IAuthService
-    {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signInManager;
-        private readonly ITokenHandler _tokenHandler;
-        private readonly IMapper _mapper;
+namespace QuizApp.Infrastructure.Managers;
 
-        public AuthManager(UserManager<AppUser> userManager, IMapper mapper, SignInManager<AppUser> signInManager, ITokenHandler tokenHandler)
+public class AuthManager : IAuthService
+{
+    private readonly UserManager<AppUser> _userManager;
+    private readonly SignInManager<AppUser> _signInManager;
+    private readonly ITokenService _tokenService;
+    private readonly Application.Options.TokenOptions _tokenOptions;
+
+    public AuthManager(
+        UserManager<AppUser> userManager,
+        SignInManager<AppUser> signInManager,
+        ITokenService tokenService,
+        IOptions<Application.Options.TokenOptions> tokenOptions)
+    {
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _tokenService = tokenService;
+        _tokenOptions = tokenOptions.Value;
+    }
+
+    public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
+    {
+        var user = new AppUser
         {
-            _userManager = userManager;
-            _mapper = mapper;
-            _signInManager = signInManager;
-            _tokenHandler = tokenHandler;
+            UserName = request.UserName,
+            Email = request.Email,
+            FullName = request.FullName
+        };
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+
+        if (result.Succeeded)
+        {
+            await _userManager.AddToRoleAsync(user, Roles.Student);
+
+            return new RegisterSuccessResponse
+            {
+                Message = "User registered successfully",
+                UserInfo = new UserInfo
+                {
+                    Id = user.Id,
+                    UserName = user.UserName ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    FullName = user.FullName,
+                    PhoneNumber = user.PhoneNumber ?? string.Empty,
+                    Roles = new List<string> { Roles.Student }
+                }
+            };
         }
 
-        public async Task<LoginResponse> LoginAsync(LoginRequest request)
+        return new RegisterErrorResponse
         {
-            // Kullanıcı adını veya e-posta adresini kullanarak kullanıcıyı bul
-            var user = _userManager.Users.FirstOrDefault(u => u.UserName == request.UserNameOrEmail || u.Email == request.UserNameOrEmail);
-            if (user == null)
-            {
-                return new LoginErrorResponse
-                {
-                    ErrorMessage = "Kullanıcı bulunamadı. Lütfen kullanıcı adınızı veya e-posta adresinizi kontrol edin.",
-                    StatusCode = 404
-                };
-            }
+            Message = "Registration failed",
+            Errors = result.Errors.Select(e => e.Description).ToList()
+        };
+    }
 
-            // Kullanıcıyı doğrula
-            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
-            if (!result.Succeeded)
-            {
-                return new LoginErrorResponse
-                {
-                    ErrorMessage = "Giriş başarısız. Lütfen kullanıcı adınızı ve şifrenizi kontrol edin.",
-                    StatusCode = 401
-                };
-            }
+    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.UserNameOrEmail) ??
+                  await _userManager.FindByNameAsync(request.UserNameOrEmail);
 
-            // Giriş başarılı - Token oluştur
-            Token token = _tokenHandler.CreateAccessToken(60, user); // 60 dakikalık token
+        if (user == null)
+        {
+            return new LoginErrorResponse { Message = "Invalid username or email" };
+        }
+
+        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+
+        if (result.Succeeded)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = _tokenService.CreateAccessToken(_tokenOptions.AccessTokenExpiration, user);
 
             return new LoginSuccessResponse
             {
+                Message = "Login successful",
                 Token = token,
-                UserName = user.UserName,
-                Email = user.Email
-            };
-        }
-
-        public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
-        {
-            var user = _mapper.Map<AppUser>(request);
-
-            var result = await _userManager.CreateAsync(user, request.Password);
-
-            if (!result.Succeeded)
-            {
-                return new RegisterResponse
+                UserInfo = new UserInfo
                 {
-                    Succeeded = false,
-                    Message = string.Join(", ", result.Errors.Select(x => x.Description))
-                };
-            }
-
-            // Kullanıcı başarıyla oluşturuldu
-            return new RegisterResponse
-            {
-                Succeeded = true,
-                Message = "Kullanıcı başarıyla oluşturuldu.",
-                UserId = user.Id,
-                UserName = user.UserName,
-                Email = user.Email
+                    Id = user.Id,
+                    UserName = user.UserName ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    FullName = user.FullName,
+                    PhoneNumber = user.PhoneNumber ?? string.Empty,
+                    Roles = roles.ToList()
+                }
             };
         }
+
+        return new LoginErrorResponse { Message = "Invalid password" };
     }
-}
+
+    public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request)
+    {
+        return await _tokenService.RefreshTokenAsync(request);
+    }
+
+    public async Task<LoginResponse> RevokeTokenAsync(RevokeTokenRequest request)
+    {
+        return await _tokenService.RevokeTokenAsync(request);
+    }
+} 

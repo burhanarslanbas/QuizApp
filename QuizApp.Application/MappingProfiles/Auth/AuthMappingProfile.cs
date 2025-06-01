@@ -1,7 +1,9 @@
 using AutoMapper;
 using QuizApp.Application.DTOs.Requests.Auth;
 using QuizApp.Application.DTOs.Responses.Auth;
+using QuizApp.Application.DTOs.Responses.Token;
 using QuizApp.Domain.Entities.Identity;
+using System.Collections.Generic;
 
 namespace QuizApp.Application.MappingProfiles.Auth
 {
@@ -9,17 +11,38 @@ namespace QuizApp.Application.MappingProfiles.Auth
     {
         public AuthMappingProfile()
         {
-            CreateMap<RegisterRequest, AppUser>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName));
+            CreateMap<AppUser, RegisterRequest>().ReverseMap();
+            CreateMap<AppUser, LoginRequest>().ReverseMap();
+            CreateMap<AppUser, RefreshTokenRequest>().ReverseMap();
+            CreateMap<AppUser, RevokeTokenRequest>().ReverseMap();
 
-            CreateMap<AppUser, RegisterResponse>()
-                .ForMember(dest => dest.Succeeded, opt => opt.Ignore())
-                .ForMember(dest => dest.Message, opt => opt.Ignore())
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id.ToString()))
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email));
+            CreateMap<AppUser, RegisterSuccessResponse>()
+                .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
+                {
+                    Id = src.Id,
+                    UserName = src.UserName!,
+                    Email = src.Email!,
+                    FullName = src.FullName,
+                    PhoneNumber = src.PhoneNumber!,
+                    Roles = new List<string>()
+                }));
+
+            CreateMap<AppUser, LoginSuccessResponse>()
+                .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
+                {
+                    Id = src.Id,
+                    UserName = src.UserName!,
+                    Email = src.Email!,
+                    FullName = src.FullName,
+                    PhoneNumber = src.PhoneNumber!,
+                    Roles = new List<string>()
+                }));
+
+            CreateMap<AppUser, Token>()
+                .ForMember(dest => dest.AccessToken, opt => opt.Ignore())
+                .ForMember(dest => dest.RefreshToken, opt => opt.Ignore())
+                .ForMember(dest => dest.Expiration, opt => opt.Ignore())
+                .ForMember(dest => dest.RefreshTokenExpiration, opt => opt.Ignore());
         }
     }
 }

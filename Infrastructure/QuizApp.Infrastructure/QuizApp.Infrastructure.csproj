@@ -8,10 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\QuizApp.Application\QuizApp.Application.csproj" />
+    <ProjectReference Include="..\QuizApp.Persistence\QuizApp.Persistence.csproj" />
   </ItemGroup>
 
 </Project>
