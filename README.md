@@ -1,6 +1,6 @@
-# QuizApp Backend
+# QuizApp
 
-Bu proje, QuizApp uygulamasının backend API'sini içerir.
+Bu proje, QuizApp uygulamasının backend API'sini ve Frontend yapısını içerir.
 
 ## Gereksinimler
 
