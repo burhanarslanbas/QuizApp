@@ -23,9 +23,6 @@ public class RolesController : ControllerBase
         _userManager = userManager;
     }
 
-    /// <summary>
-    /// Yeni bir rol oluşturur
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequest request)
     {
@@ -36,9 +33,6 @@ public class RolesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Rolü günceller
-    /// </summary>
     [HttpPut]
     public async Task<IActionResult> UpdateRole([FromBody] UpdateRoleRequest request)
     {
@@ -49,9 +43,6 @@ public class RolesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Rolü siler
-    /// </summary>
     [HttpDelete("{roleId}")]
     public async Task<IActionResult> DeleteRole(Guid roleId)
     {
@@ -59,9 +50,6 @@ public class RolesController : ControllerBase
         return Ok();
     }
 
-    /// <summary>
-    /// Id ile rolü getirir
-    /// </summary>
     [HttpGet("{roleId}")]
     public async Task<IActionResult> GetRoleById(Guid roleId)
     {
@@ -72,9 +60,6 @@ public class RolesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Rol ismine göre rolü getirir
-    /// </summary>
     [HttpGet("by-name/{roleName}")]
     public async Task<IActionResult> GetRoleByName(string roleName)
     {
@@ -82,9 +67,6 @@ public class RolesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Tüm rolleri getirir
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAllRoles()
     {
@@ -92,9 +74,6 @@ public class RolesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Kullanıcıya rol atar
-    /// </summary>
     [HttpPost("assign")]
     public async Task<IActionResult> AssignRoleToUser([FromBody] AssignRoleRequest request)
     {
@@ -109,9 +88,6 @@ public class RolesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Kullanıcıdan rolü kaldırır
-    /// </summary>
     [HttpPost("remove")]
     public async Task<IActionResult> RemoveRoleFromUser([FromBody] RemoveRoleRequest request)
     {
@@ -126,9 +102,6 @@ public class RolesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Kullanıcının rollerini getirir
-    /// </summary>
     [HttpGet("user-roles/{userId}")]
     public async Task<IActionResult> GetUserRoles(string userId)
     {
@@ -140,9 +113,6 @@ public class RolesController : ControllerBase
         return Ok(roles);
     }
 
-    /// <summary>
-    /// Rolün claimlerini getirir
-    /// </summary>
     [HttpGet("claims/{roleName}")]
     public async Task<IActionResult> GetRoleClaims(string roleName)
     {
@@ -150,9 +120,6 @@ public class RolesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Role claim atar
-    /// </summary>
     [HttpPost("assign-claims/{roleName}")]
     public async Task<IActionResult> AssignClaimsToRole(string roleName, [FromBody] IEnumerable<string> claims)
     {
