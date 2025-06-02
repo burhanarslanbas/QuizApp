@@ -104,17 +104,9 @@ public class TokenManager : ITokenService
 
             return new LoginSuccessResponse
             {
+                Success = true,
                 Message = "Token refreshed successfully",
-                Token = newToken,
-                UserInfo = new UserInfo
-                {
-                    Id = user.Id,
-                    UserName = user.UserName ?? string.Empty,
-                    Email = user.Email ?? string.Empty,
-                    FullName = user.FullName,
-                    PhoneNumber = user.PhoneNumber ?? string.Empty,
-                    Roles = roles.ToList()
-                }
+                Token = newToken
             };
         }
         catch (Exception)
@@ -126,7 +118,11 @@ public class TokenManager : ITokenService
     public async Task<LoginResponse> RevokeTokenAsync(RevokeTokenRequest request)
     {
         await _tokenBlacklistService.BlacklistTokenAsync(request.RefreshToken);
-        return new LoginSuccessResponse { Message = "Token revoked successfully" };
+        return new LoginSuccessResponse
+        {
+            Success = true,
+            Message = "Token revoked successfully"
+        };
     }
 
     public string CreateToken(AppUser user, IList<string> roles)

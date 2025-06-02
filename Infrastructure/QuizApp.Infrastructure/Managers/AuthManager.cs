@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using QuizApp.Application.DTOs.Requests.Auth;
 using QuizApp.Application.DTOs.Responses.Auth;
-using QuizApp.Application.Options;
 using QuizApp.Application.Services;
 using QuizApp.Application.Services.Token;
 using QuizApp.Domain.Constants;
@@ -44,23 +43,16 @@ public class AuthManager : IAuthService
         {
             await _userManager.AddToRoleAsync(user, Roles.Student);
 
-            return new RegisterSuccessResponse
+            return new RegisterResponse
             {
-                Message = "User registered successfully",
-                UserInfo = new UserInfo
-                {
-                    Id = user.Id,
-                    UserName = user.UserName ?? string.Empty,
-                    Email = user.Email ?? string.Empty,
-                    FullName = user.FullName,
-                    PhoneNumber = user.PhoneNumber ?? string.Empty,
-                    Roles = new List<string> { Roles.Student }
-                }
+                Success = true,
+                Message = "User registered successfully"
             };
         }
 
         return new RegisterErrorResponse
         {
+            Success = false,
             Message = "Registration failed",
             Errors = result.Errors.Select(e => e.Description).ToList()
         };
@@ -85,17 +77,9 @@ public class AuthManager : IAuthService
 
             return new LoginSuccessResponse
             {
+                Success = true,
                 Message = "Login successful",
-                Token = token,
-                UserInfo = new UserInfo
-                {
-                    Id = user.Id,
-                    UserName = user.UserName ?? string.Empty,
-                    Email = user.Email ?? string.Empty,
-                    FullName = user.FullName,
-                    PhoneNumber = user.PhoneNumber ?? string.Empty,
-                    Roles = roles.ToList()
-                }
+                Token = token
             };
         }
 
@@ -111,4 +95,4 @@ public class AuthManager : IAuthService
     {
         return await _tokenService.RevokeTokenAsync(request);
     }
-} 
+}

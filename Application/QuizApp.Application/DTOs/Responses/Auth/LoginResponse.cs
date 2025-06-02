@@ -1,4 +1,6 @@
-﻿namespace QuizApp.Application.DTOs.Responses.Auth;
+using QuizApp.Application.DTOs.Responses.Token;
+
+namespace QuizApp.Application.DTOs.Responses.Auth;
 
 public class LoginResponse
 {
@@ -8,10 +10,10 @@ public class LoginResponse
 
 public class LoginSuccessResponse : LoginResponse
 {
-    public Token.Token Token { get; set; } = new();
+    public QuizApp.Application.DTOs.Responses.Token.Token Token { get; set; } = new();
 }
 
 public class LoginErrorResponse : LoginResponse
 {
     public List<string> Errors { get; set; } = new();
-}
+} 
