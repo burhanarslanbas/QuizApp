@@ -100,4 +100,10 @@ public class QuizResultManager : IQuizResultService
             throw new NotFoundException($"Quiz result with ID {request.Id} not found.");
         }
     }
+
+    public List<QuizResultDTO> GetByQuizIdAndOwner(Guid quizId, Guid ownerId)
+    {
+        var results = _quizResultReadRepository.GetWhere(qr => qr.QuizId == quizId && qr.Quiz.CreatorId == ownerId).ToList();
+        return _mapper.Map<List<QuizResultDTO>>(results);
+    }
 }

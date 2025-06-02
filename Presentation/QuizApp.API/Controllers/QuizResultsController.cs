@@ -76,4 +76,18 @@ public class QuizResultsController : ControllerBase
         var result = _quizResultService.DeleteRange(ids);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Giriş yapan öğretmenin kendi quizine ait sonuçları getirir
+    /// </summary>
+    [HttpGet("by-quiz/{quizId}")]
+    [Authorize(Roles = "Teacher")]
+    public IActionResult GetResultsByQuiz([FromRoute] Guid quizId)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+        var results = _quizResultService.GetByQuizIdAndOwner(quizId, Guid.Parse(userId));
+        return Ok(results);
+    }
 }

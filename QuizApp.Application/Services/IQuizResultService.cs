@@ -12,4 +12,5 @@ public interface IQuizResultService
     List<QuizResultDTO> GetAll();
     Task<QuizResultDTO> GetByIdAsync(Guid id);
     bool Update(UpdateQuizResultRequest request);
+    List<QuizResultDTO> GetByQuizIdAndOwner(Guid quizId, Guid ownerId);
 } 
