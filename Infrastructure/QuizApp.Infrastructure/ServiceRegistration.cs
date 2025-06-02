@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using QuizApp.Application.Services;
 using QuizApp.Application.Services.Token;
 using QuizApp.Infrastructure.Managers;
@@ -39,41 +38,6 @@ namespace QuizApp.Infrastructure
                     ClockSkew = TimeSpan.Zero
                 };
             });
-
-            // Swagger Configuration
-            // services.AddSwaggerGen(c =>
-            // {
-            //     c.SwaggerDoc("v1", new OpenApiInfo { Title = "QuizApp API", Version = "v1" });
-            //     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            //     {
-            //         Description = "JWT Authorization header using the Bearer scheme",
-            //         Name = "Authorization",
-            //         In = ParameterLocation.Header,
-            //         Type = SecuritySchemeType.ApiKey,
-            //         Scheme = "Bearer"
-            //     });
-            //     c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            //     {
-            //         {
-            //             new OpenApiSecurityScheme
-            //             {
-            //                 Reference = new OpenApiReference
-            //                 {
-            //                     Type = ReferenceType.SecurityScheme,
-            //                     Id = "Bearer"
-            //                 }
-            //             },
-            //             Array.Empty<string>()
-            //         }
-            //     });
-            // });
-
-            // CORS Configuration
-            services.AddCors(options => options.AddDefaultPolicy(policy => policy
-                .WithOrigins("https://localhost:3000", "http://localhost:3000")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-            ));
 
             // Manager DI Registrations
             services.AddScoped<IAuthService, AuthManager>();

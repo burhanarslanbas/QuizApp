@@ -54,8 +54,13 @@ public class QuizManager : IQuizService
 
     public List<QuizDetailResponse> GetAll(GetQuizzesRequest request)
     {
-        var quizzes = _quizReadRepository.GetAll().ToList();
-        return _mapper.Map<List<QuizDetailResponse>>(quizzes);
+        var quizzes = _quizReadRepository.GetAll();
+        if (request.CreatorId.HasValue)
+        {
+            quizzes = quizzes.Where(q => q.CreatorId == request.CreatorId.Value);
+        }
+        // Diğer filtreler (kategori, aktiflik vs.) burada eklenebilir
+        return _mapper.Map<List<QuizDetailResponse>>(quizzes.ToList());
     }
 
     public async Task<QuizDetailResponse> GetByIdAsync(GetQuizByIdRequest request)

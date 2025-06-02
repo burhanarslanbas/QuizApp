@@ -77,4 +77,19 @@ public class QuizzesController : ControllerBase
         var result = _quizService.DeleteRange(request);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Giriş yapan öğretmenin kendi oluşturduğu quizleri getirir
+    /// </summary>
+    [HttpGet("my")]
+    [Authorize(Roles = "Teacher")]
+    public IActionResult GetMyQuizzes([FromQuery] GetQuizzesRequest request)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+        request.CreatorId = Guid.Parse(userId);
+        var result = _quizService.GetAll(request);
+        return Ok(result);
+    }
 } 

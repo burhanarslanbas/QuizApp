@@ -37,11 +37,18 @@ builder.Services.AddMemoryCache();
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRoleRequestValidator>();
 
-builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
-     .WithOrigins("https://localhost:3000", "http://localhost:3000") // React uygulamasının çalıştığı adresler
-     .AllowAnyHeader() // Herhangi bir header'a izin ver
-     .AllowAnyMethod() // Herhangi bir HTTP metoduna izin ver
-));
+// CORS yapılandırması
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("QuizAppPolicy", policy =>
+    {
+        policy
+            .WithOrigins("https://localhost:5173", "http://localhost:5173") // React uygulamasının varsayılan adresi (Vite)
+            .AllowAnyHeader() // Herhangi bir header'a izin ver
+            .AllowAnyMethod() // Herhangi bir HTTP metoduna izin ver
+            .AllowCredentials(); // Cookie ve Authorization header'ları için gerekli
+    });
+});
 
 // Swagger yapılandırması
 builder.Services.AddSwaggerGen(c =>
@@ -83,7 +90,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRequestLocalization();
-app.UseCors(); // CORS ayarlarını uygulamak için UseCors() metodunu çağırıyoruz
+
+// CORS middleware'i authentication'dan önce olmalı
+app.UseCors("QuizAppPolicy");
 
 app.UseHttpsRedirection();
 

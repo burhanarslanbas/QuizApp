@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuizApp.Application.DTOs.Requests.Option;
 using QuizApp.Application.DTOs.Responses.Option;
 using QuizApp.Application.Services;
+using System.Security.Claims;
 
 namespace QuizApp.API.Controllers;
 
@@ -42,9 +43,14 @@ public class OptionsController : ControllerBase
     /// Yeni seçenek oluşturur
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> CreateOption([FromBody] CreateOptionRequest request)
     {
-        var result = await _optionService.CreateAsync(request);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _optionService.CreateAsync(request, Guid.Parse(userId));
         return Ok(result);
     }
 
@@ -52,9 +58,14 @@ public class OptionsController : ControllerBase
     /// Çoklu seçenek oluşturur
     /// </summary>
     [HttpPost("range")]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> CreateRange([FromBody] List<CreateOptionRequest> requests)
     {
-        var result = await _optionService.CreateRangeAsync(requests);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _optionService.CreateRangeAsync(requests, Guid.Parse(userId));
         return Ok(result);
     }
 
@@ -62,9 +73,14 @@ public class OptionsController : ControllerBase
     /// Seçenek günceller
     /// </summary>
     [HttpPut]
-    public IActionResult UpdateOption([FromBody] UpdateOptionRequest request)
+    [Authorize(Roles = "Teacher")]
+    public async Task<IActionResult> UpdateOption([FromBody] UpdateOptionRequest request)
     {
-        var result = _optionService.Update(request);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _optionService.Update(request, Guid.Parse(userId));
         return Ok(result);
     }
 
@@ -72,9 +88,14 @@ public class OptionsController : ControllerBase
     /// Seçenek siler
     /// </summary>
     [HttpDelete("{optionId}")]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> DeleteOption([FromRoute] Guid optionId)
     {
-        var result = await _optionService.DeleteAsync(optionId);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _optionService.DeleteAsync(optionId, Guid.Parse(userId));
         return Ok(result);
     }
 
@@ -82,9 +103,14 @@ public class OptionsController : ControllerBase
     /// Çoklu seçenek siler
     /// </summary>
     [HttpDelete("range")]
-    public IActionResult DeleteRange([FromBody] List<Guid> ids)
+    [Authorize(Roles = "Teacher")]
+    public async Task<IActionResult> DeleteRange([FromBody] List<Guid> ids)
     {
-        var result = _optionService.DeleteRange(ids);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _optionService.DeleteRange(ids, Guid.Parse(userId));
         return Ok(result);
     }
 } 

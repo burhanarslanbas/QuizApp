@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuizApp.Application.DTOs.Requests.Question;
 using QuizApp.Application.DTOs.Responses.Question;
 using QuizApp.Application.Services;
+using System.Security.Claims;
 
 namespace QuizApp.API.Controllers;
 
@@ -42,9 +43,14 @@ public class QuestionsController : ControllerBase
     /// Yeni soru oluşturur
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> CreateQuestion([FromBody] CreateQuestionRequest request)
     {
-        var result = await _questionService.CreateAsync(request);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _questionService.CreateAsync(request, Guid.Parse(userId));
         return Ok(result);
     }
 
@@ -52,19 +58,29 @@ public class QuestionsController : ControllerBase
     /// Soru günceller
     /// </summary>
     [HttpPut]
-    public IActionResult UpdateQuestion([FromBody] UpdateQuestionRequest request)
+    [Authorize(Roles = "Teacher")]
+    public async Task<IActionResult> UpdateQuestion([FromBody] UpdateQuestionRequest request)
     {
-        var result = _questionService.Update(request);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _questionService.Update(request, Guid.Parse(userId));
         return Ok(result);
     }
 
     /// <summary>
     /// Soru siler
     /// </summary>
-    [HttpDelete]
-    public async Task<IActionResult> DeleteQuestion([FromBody] DeleteQuestionRequest request)
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Teacher")]
+    public async Task<IActionResult> DeleteQuestion([FromRoute] DeleteQuestionRequest request)
     {
-        await _questionService.DeleteAsync(request);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        await _questionService.DeleteAsync(request, Guid.Parse(userId));
         return Ok();
     }
 
@@ -72,9 +88,14 @@ public class QuestionsController : ControllerBase
     /// Çoklu soru siler
     /// </summary>
     [HttpDelete("range")]
-    public IActionResult DeleteRange([FromBody] DeleteRangeQuestionRequest request)
+    [Authorize(Roles = "Teacher")]
+    public async Task<IActionResult> DeleteRange([FromBody] DeleteRangeQuestionRequest request)
     {
-        var result = _questionService.DeleteRange(request);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _questionService.DeleteRange(request, Guid.Parse(userId));
         return Ok(result);
     }
 } 
