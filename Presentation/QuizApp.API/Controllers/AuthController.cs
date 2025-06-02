@@ -15,9 +15,6 @@ namespace QuizApp.API.Controllers
             _authService = authService;
         }
 
-        /// <summary>
-        /// Yeni bir kullanıcı kaydı oluşturur
-        /// </summary>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -25,9 +22,6 @@ namespace QuizApp.API.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Kullanıcı girişi yapar
-        /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {

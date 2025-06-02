@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuizApp.Application.DTOs.Requests.Question;
 using QuizApp.Application.DTOs.Responses.Question;
 using QuizApp.Application.Services;
+using QuizApp.Domain.Constants;
 using System.Security.Claims;
 
 namespace QuizApp.API.Controllers;
@@ -19,31 +20,24 @@ public class QuestionsController : ControllerBase
         _questionService = questionService;
     }
 
-    /// <summary>
-    /// Id ile soru getirir
-    /// </summary>
     [HttpGet("{questionId}")]
+    [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher},{RoleConstants.Roles.Student}")]
     public async Task<IActionResult> GetQuestionById([FromRoute] Guid questionId)
     {
         var result = await _questionService.GetByIdAsync(new GetQuestionByIdRequest { Id = questionId });
         return Ok(result);
     }
 
-    /// <summary>
-    /// Tüm soruları getirir
-    /// </summary>
     [HttpGet]
+    [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher},{RoleConstants.Roles.Student}")]
     public IActionResult GetAllQuestions([FromQuery] GetQuestionsRequest request)
     {
         var result = _questionService.GetAll(request);
         return Ok(result);
     }
 
-    /// <summary>
-    /// Yeni soru oluşturur
-    /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
     public async Task<IActionResult> CreateQuestion([FromBody] CreateQuestionRequest request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -54,11 +48,8 @@ public class QuestionsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Soru günceller
-    /// </summary>
     [HttpPut]
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
     public async Task<IActionResult> UpdateQuestion([FromBody] UpdateQuestionRequest request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -69,11 +60,8 @@ public class QuestionsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Soru siler
-    /// </summary>
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Teacher")]
+    [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
     public async Task<IActionResult> DeleteQuestion([FromRoute] DeleteQuestionRequest request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -84,9 +72,6 @@ public class QuestionsController : ControllerBase
         return Ok();
     }
 
-    /// <summary>
-    /// Çoklu soru siler
-    /// </summary>
     [HttpDelete("range")]
     [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> DeleteRange([FromBody] DeleteRangeQuestionRequest request)
