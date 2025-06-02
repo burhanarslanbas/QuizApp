@@ -1,9 +1,7 @@
 using AutoMapper;
 using QuizApp.Application.DTOs.Requests.Auth;
-using QuizApp.Application.DTOs.Responses.Auth;
 using QuizApp.Application.DTOs.Responses.Token;
 using QuizApp.Domain.Entities.Identity;
-using System.Collections.Generic;
 
 namespace QuizApp.Application.MappingProfiles.Auth
 {
@@ -16,27 +14,27 @@ namespace QuizApp.Application.MappingProfiles.Auth
             CreateMap<AppUser, RefreshTokenRequest>().ReverseMap();
             CreateMap<AppUser, RevokeTokenRequest>().ReverseMap();
 
-            CreateMap<AppUser, RegisterSuccessResponse>()
-                .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
-                {
-                    Id = src.Id,
-                    UserName = src.UserName!,
-                    Email = src.Email!,
-                    FullName = src.FullName,
-                    PhoneNumber = src.PhoneNumber!,
-                    Roles = new List<string>()
-                }));
+            //CreateMap<AppUser, RegisterSuccessResponse>()
+            //    .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
+            //    {
+            //        Id = src.Id,
+            //        UserName = src.UserName!,
+            //        Email = src.Email!,
+            //        FullName = src.FullName,
+            //        PhoneNumber = src.PhoneNumber!,
+            //        Roles = new List<string>()
+            //    }));
 
-            CreateMap<AppUser, LoginSuccessResponse>()
-                .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
-                {
-                    Id = src.Id,
-                    UserName = src.UserName!,
-                    Email = src.Email!,
-                    FullName = src.FullName,
-                    PhoneNumber = src.PhoneNumber!,
-                    Roles = new List<string>()
-                }));
+            //CreateMap<AppUser, LoginSuccessResponse>()
+            //    .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
+            //    {
+            //        Id = src.Id,
+            //        UserName = src.UserName!,
+            //        Email = src.Email!,
+            //        FullName = src.FullName,
+            //        PhoneNumber = src.PhoneNumber!,
+            //        Roles = new List<string>()
+            //    }));
 
             CreateMap<AppUser, Token>()
                 .ForMember(dest => dest.AccessToken, opt => opt.Ignore())

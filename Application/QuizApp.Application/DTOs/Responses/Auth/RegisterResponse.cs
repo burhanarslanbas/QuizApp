@@ -6,7 +6,11 @@ public class RegisterResponse
     public string Message { get; set; } = string.Empty;
 }
 
+public class RegisterSuccessResponse : RegisterResponse
+{
+}
+
 public class RegisterErrorResponse : RegisterResponse
 {
     public List<string> Errors { get; set; } = new();
-}
+} 
