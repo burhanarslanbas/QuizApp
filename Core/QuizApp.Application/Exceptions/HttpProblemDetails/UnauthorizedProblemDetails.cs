@@ -12,4 +12,4 @@ public class UnauthorizedProblemDetails : ProblemDetails
         Status = StatusCodes.Status401Unauthorized;
         Type = "https://quizapp.com/props/unauthorized";
     }
-} 
+}

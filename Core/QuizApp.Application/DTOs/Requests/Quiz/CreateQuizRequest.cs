@@ -1,5 +1,3 @@
-using QuizApp.Application.DTOs.Requests.Question;
-
 namespace QuizApp.Application.DTOs.Requests.Quiz;
 
 public record CreateQuizRequest
@@ -12,4 +10,6 @@ public record CreateQuizRequest
     public int Duration { get; set; }
     public int MaxAttempts { get; set; } = 1;
     public bool IsActive { get; set; } = true;
+    public Guid CreatorId { get; set; } // JWT'den alınacak
+    public List<QuizQuestion.GetQuizQuestionsRequest> Questions { get; set; } = new();
 }

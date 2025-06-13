@@ -7,9 +7,10 @@ using QuizApp.Domain.Constants;
 
 namespace QuizApp.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/question-repos")]
 [ApiController]
 [Authorize]
+[Produces("application/json")]
 public class QuestionReposController : ControllerBase
 {
     private readonly IQuestionRepoService _questionRepoService;
@@ -19,50 +20,99 @@ public class QuestionReposController : ControllerBase
         _questionRepoService = questionRepoService;
     }
 
+    /// <summary>
+    /// Get a question repository by ID
+    /// </summary>
+    /// <param name="questionRepoId">Question repository ID</param>
+    /// <returns>Question repository details</returns>
     [HttpGet("{questionRepoId}")]
     [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
+    [ProducesResponseType(typeof(QuestionRepoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetQuestionRepoById([FromRoute] Guid questionRepoId)
     {
-        var result = await _questionRepoService.GetByIdAsync(new GetQuestionRepoByIdRequest { Id = questionRepoId });
+        var result = await _questionRepoService.GetByIdAsync(new GetQuestionRepoByIdRequest(questionRepoId));
         return Ok(result);
     }
 
+    /// <summary>
+    /// Get all question repositories with pagination
+    /// </summary>
+    /// <param name="request">Pagination parameters</param>
+    /// <returns>List of question repositories</returns>
     [HttpGet]
     [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
-    public IActionResult GetAllQuestionRepos([FromQuery] GetQuestionReposRequest request)
+    [ProducesResponseType(typeof(IEnumerable<QuestionRepoResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetAllQuestionRepos([FromQuery] GetQuestionReposRequest request)
     {
-        var result = _questionRepoService.GetAll(request);
+        var result = await _questionRepoService.GetAllAsync(request);
         return Ok(result);
     }
 
+    /// <summary>
+    /// Create a new question repository
+    /// </summary>
+    /// <param name="request">Question repository information</param>
+    /// <returns>Created question repository</returns>
     [HttpPost]
     [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
+    [ProducesResponseType(typeof(QuestionRepoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateQuestionRepo([FromBody] CreateQuestionRepoRequest request)
     {
         var result = await _questionRepoService.CreateAsync(request);
         return Ok(result);
     }
 
+    /// <summary>
+    /// Update an existing question repository
+    /// </summary>
+    /// <param name="request">Updated question repository information</param>
+    /// <returns>Updated question repository</returns>
     [HttpPut]
     [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
-    public IActionResult UpdateQuestionRepo([FromBody] UpdateQuestionRepoRequest request)
+    [ProducesResponseType(typeof(QuestionRepoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UpdateQuestionRepo([FromBody] UpdateQuestionRepoRequest request)
     {
-        var result = _questionRepoService.Update(request);
+        var result = await _questionRepoService.UpdateAsync(request);
         return Ok(result);
     }
 
-    [HttpDelete]
+    /// <summary>
+    /// Delete a question repository
+    /// </summary>
+    /// <param name="questionRepoId">Question repository ID to delete</param>
+    /// <returns>No content</returns>
+    [HttpDelete("{questionRepoId}")]
     [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
-    public async Task<IActionResult> DeleteQuestionRepo([FromBody] DeleteQuestionRepoRequest request)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DeleteQuestionRepo([FromRoute] Guid questionRepoId)
     {
-        await _questionRepoService.DeleteAsync(request);
-        return Ok();
+        await _questionRepoService.DeleteAsync(new DeleteQuestionRepoRequest(questionRepoId));
+        return NoContent();
     }
 
+    /// <summary>
+    /// Delete multiple question repositories
+    /// </summary>
+    /// <param name="request">List of question repository IDs to delete</param>
+    /// <returns>No content</returns>
     [HttpDelete("range")]
-    public IActionResult DeleteRange([FromBody] DeleteRangeQuestionRepoRequest request)
+    [Authorize(Roles = $"{RoleConstants.Roles.Admin},{RoleConstants.Roles.Teacher}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DeleteRange([FromBody] DeleteRangeQuestionRepoRequest request)
     {
-        var result = _questionRepoService.DeleteRange(request);
-        return Ok(result);
+        await _questionRepoService.DeleteRangeAsync(request);
+        return NoContent();
     }
-} 
+}

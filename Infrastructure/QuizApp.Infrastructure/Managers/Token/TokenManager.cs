@@ -14,119 +14,22 @@ namespace QuizApp.Infrastructure.Managers.Token;
 public class TokenManager : ITokenService
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly ITokenBlacklistService _tokenBlacklistService;
     private readonly Application.Options.TokenOptions _tokenOptions;
     private const string RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+    private const string RefreshTokenProvider = "RefreshTokenProvider";
+    private const string RefreshTokenPurpose = "RefreshToken";
 
     public TokenManager(
         UserManager<AppUser> userManager,
-        ITokenBlacklistService tokenBlacklistService,
         IOptions<Application.Options.TokenOptions> tokenOptions)
     {
         _userManager = userManager;
-        _tokenBlacklistService = tokenBlacklistService;
         _tokenOptions = tokenOptions.Value;
     }
 
-    public QuizApp.Application.DTOs.Responses.Token.Token CreateAccessToken(int expirationMinutes, AppUser user)
+    public async Task<Application.DTOs.Responses.Token.Token> CreateAccessTokenAsync(AppUser user)
     {
-        var roles = _userManager.GetRolesAsync(user).Result;
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        };
-
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(RoleClaimType, role));
-        }
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenOptions.SecurityKey));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(expirationMinutes);
-
-        var token = new JwtSecurityToken(
-            issuer: _tokenOptions.Issuer,
-            audience: _tokenOptions.Audience,
-            claims: claims,
-            expires: expires,
-            signingCredentials: creds
-        );
-
-        var refreshToken = Guid.NewGuid().ToString();
-
-        return new QuizApp.Application.DTOs.Responses.Token.Token
-        {
-            AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
-            Expiration = expires,
-            RefreshToken = refreshToken,
-            RefreshTokenExpiration = DateTime.UtcNow.AddDays(7)
-        };
-    }
-
-    public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request)
-    {
-        try
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_tokenOptions.SecurityKey);
-
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = true,
-                ValidIssuer = _tokenOptions.Issuer,
-                ValidateAudience = true,
-                ValidAudience = _tokenOptions.Audience,
-                ValidateLifetime = false
-            };
-
-            var principal = tokenHandler.ValidateToken(request.AccessToken, tokenValidationParameters, out var validatedToken);
-
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return new LoginErrorResponse { Message = "Invalid token" };
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                return new LoginErrorResponse { Message = "User not found" };
-            }
-
-            var roles = await _userManager.GetRolesAsync(user);
-            var newToken = CreateAccessToken(30, user);
-
-            return new LoginSuccessResponse
-            {
-                Success = true,
-                Message = "Token refreshed successfully",
-                Token = newToken
-            };
-        }
-        catch (Exception)
-        {
-            return new LoginErrorResponse { Message = "Invalid token" };
-        }
-    }
-
-    public async Task<LoginResponse> RevokeTokenAsync(RevokeTokenRequest request)
-    {
-        await _tokenBlacklistService.BlacklistTokenAsync(request.RefreshToken);
-        return new LoginSuccessResponse
-        {
-            Success = true,
-            Message = "Token revoked successfully"
-        };
-    }
-
-    public string CreateToken(AppUser user, IList<string> roles)
-    {
+        var roles = await _userManager.GetRolesAsync(user);
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
@@ -152,31 +55,201 @@ public class TokenManager : ITokenService
             signingCredentials: creds
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        // Identity'nin token yapısını kullanarak refresh token oluştur
+        var refreshToken = await _userManager.GenerateUserTokenAsync(
+            user,
+            RefreshTokenProvider,
+            RefreshTokenPurpose
+        );
+
+        // Refresh token'ı kullanıcıya kaydet
+        await _userManager.SetAuthenticationTokenAsync(
+            user,
+            RefreshTokenProvider,
+            RefreshTokenPurpose,
+            refreshToken
+        );
+
+        return new Application.DTOs.Responses.Token.Token
+        {
+            AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+            Expiration = expires,
+            RefreshToken = refreshToken,
+            RefreshTokenExpiration = DateTime.UtcNow.AddDays(_tokenOptions.RefreshTokenExpiration)
+        };
     }
 
-    public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request)
     {
-        var tokenValidationParameters = new TokenValidationParameters
+        try
         {
-            ValidateAudience = true,
-            ValidateIssuer = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenOptions.SecurityKey)),
-            ValidateLifetime = false,
-            ValidIssuer = _tokenOptions.Issuer,
-            ValidAudience = _tokenOptions.Audience
-        };
+            var principal = GetPrincipalFromExpiredToken(request.AccessToken);
+            if (principal == null)
+            {
+                return new LoginErrorResponse
+                {
+                    Success = false,
+                    Message = "Invalid access token",
+                    Errors = new List<string> { "Invalid access token" }
+                };
+            }
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return new LoginErrorResponse
+                {
+                    Success = false,
+                    Message = "Invalid access token",
+                    Errors = new List<string> { "Invalid access token" }
+                };
+            }
 
-        if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return new LoginErrorResponse
+                {
+                    Success = false,
+                    Message = "User not found",
+                    Errors = new List<string> { "User not found" }
+                };
+            }
+
+            // Identity'nin token doğrulama mekanizmasını kullan
+            var isValid = await _userManager.VerifyUserTokenAsync(
+                user,
+                RefreshTokenProvider,
+                RefreshTokenPurpose,
+                request.RefreshToken
+            );
+
+            if (!isValid)
+            {
+                return new LoginErrorResponse
+                {
+                    Success = false,
+                    Message = "Invalid refresh token",
+                    Errors = new List<string> { "Invalid refresh token" }
+                };
+            }
+
+            var newToken = await CreateAccessTokenAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var claims = (await _userManager.GetClaimsAsync(user)).Select(c => c.Value).ToList();
+
+            var userDto = new Application.DTOs.Responses.User.UserResponse
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                FullName = user.FullName,
+                Roles = roles.ToList(),
+                Claims = claims
+            };
+
+            return new LoginSuccessResponse
+            {
+                Success = true,
+                Message = "Token refreshed successfully",
+                Token = newToken,
+                User = userDto
+            };
+        }
+        catch (Exception ex)
+        {
+            return new LoginErrorResponse
+            {
+                Success = false,
+                Message = "Token refresh failed",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    public async Task<LoginResponse> RevokeTokenAsync(RevokeTokenRequest request)
+    {
+        try
+        {
+            var principal = GetPrincipalFromExpiredToken(request.AccessToken);
+            if (principal == null)
+            {
+                return new LoginErrorResponse
+                {
+                    Success = false,
+                    Message = "Invalid token",
+                    Errors = new List<string> { "Invalid token" }
+                };
+            }
+
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return new LoginErrorResponse
+                {
+                    Success = false,
+                    Message = "Invalid token",
+                    Errors = new List<string> { "Invalid token" }
+                };
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                // Identity'nin token yapısından refresh token'ı kaldır
+                await _userManager.RemoveAuthenticationTokenAsync(
+                    user,
+                    RefreshTokenProvider,
+                    RefreshTokenPurpose
+                );
+            }
+
+            return new LoginSuccessResponse
+            {
+                Success = true,
+                Message = "Token revoked successfully"
+            };
+        }
+        catch (Exception ex)
+        {
+            return new LoginErrorResponse
+            {
+                Success = false,
+                Message = "Token revocation failed",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+    {
+        try
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenOptions.SecurityKey)),
+                ValidateLifetime = false,
+                ValidIssuer = _tokenOptions.Issuer,
+                ValidAudience = _tokenOptions.Audience
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+
+            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return null;
+            }
+
+            return principal;
+        }
+        catch
         {
             return null;
         }
-
-        return principal;
     }
 }

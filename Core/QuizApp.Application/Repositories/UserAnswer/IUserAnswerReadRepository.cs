@@ -1,6 +1,5 @@
-using QuizApp.Domain.Entities;
+namespace QuizApp.Application.Repositories.UserAnswer;
 
-namespace QuizApp.Application.Repositories;
-public interface IUserAnswerReadRepository : IReadRepository<UserAnswer>
+public interface IUserAnswerReadRepository : IReadRepository<Domain.Entities.UserAnswer>
 {
 }

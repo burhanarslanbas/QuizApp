@@ -1,15 +1,20 @@
 using QuizApp.Application.DTOs.Requests.Question;
 using QuizApp.Application.DTOs.Responses.Question;
-using QuizApp.Domain.Entities;
 
 namespace QuizApp.Application.Services;
 
 public interface IQuestionService
 {
-    Task<QuestionDetailResponse> GetByIdAsync(GetQuestionByIdRequest request);
-    List<QuestionDetailResponse> GetAll(GetQuestionsRequest request);
-    Task<QuestionDetailResponse> CreateAsync(CreateQuestionRequest request, Guid userId);
-    Task<QuestionDetailResponse> Update(UpdateQuestionRequest request, Guid userId);
-    Task DeleteAsync(DeleteQuestionRequest request, Guid userId);
-    Task<bool> DeleteRange(DeleteRangeQuestionRequest request, Guid userId);
-} 
+    Task<QuestionResponse> CreateAsync(CreateQuestionRequest request);
+    Task<QuestionResponse> UpdateAsync(UpdateQuestionRequest request);
+    Task DeleteAsync(DeleteQuestionRequest request);
+    Task<QuestionResponse> GetByIdAsync(GetQuestionByIdRequest request);
+    Task<IEnumerable<QuestionResponse>> GetAllAsync(GetQuestionsRequest request);
+    Task<IEnumerable<QuestionResponse>> GetByRepoAsync(GetQuestionsByRepoRequest request);
+    Task<IEnumerable<QuestionResponse>> GetByCategoryAsync(GetQuestionsByCategoryRequest request);
+    Task<IEnumerable<QuestionResponse>> CreateRangeAsync(CreateRangeQuestionRequest request);
+    Task<IEnumerable<QuestionResponse>> UpdateRangeAsync(UpdateRangeQuestionRequest request);
+    Task DeleteRangeAsync(DeleteRangeQuestionRequest request);
+    Task UpdateRepoIdAsync(UpdateQuestionRepoIdRequest request);
+    Task UpdateRepoIdsAsync(UpdateQuestionRepoIdsRequest request);
+}

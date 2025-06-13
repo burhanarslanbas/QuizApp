@@ -8,23 +8,51 @@ namespace QuizApp.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Category> builder)
         {
-            builder.HasKey(e => e.Id);
-            builder.Property(e => e.Name).HasColumnName("Name").IsRequired().HasMaxLength(100);
-            builder.Property(e => e.Description).HasColumnName("Description").IsRequired().HasMaxLength(500);
-            builder.Property(e => e.IsActive).HasColumnName("IsActive").IsRequired().HasDefaultValue(true);
-            builder.Property(e => e.CreatedDate).HasColumnName("CreatedDate").IsRequired();
-            builder.Property(e => e.UpdatedDate).HasColumnName("UpdatedDate");
+            builder.HasKey(c => c.Id);
+
+            // BaseEntity alanları
+            builder.Property(c => c.Id)
+                .HasColumnName("Id")
+                .IsRequired();
+
+            builder.Property(c => c.CreatedDate)
+                .HasColumnName("CreatedDate")
+                .IsRequired();
+
+            builder.Property(c => c.UpdatedDate)
+                .HasColumnName("UpdatedDate")
+                .IsRequired(false);
+
+            builder.Property(c => c.DeletedDate)
+                .HasColumnName("DeletedDate")
+                .IsRequired(false);
+
+            // Entity özel alanları
+            builder.Property(c => c.Name)
+                .HasColumnName("Name")
+                .IsRequired()
+                .HasMaxLength(100);
+
+            builder.Property(c => c.Description)
+                .HasColumnName("Description")
+                .IsRequired(false)
+                .HasMaxLength(500);
+
+            builder.Property(c => c.IsActive)
+                .HasColumnName("IsActive")
+                .IsRequired()
+                .HasDefaultValue(true);
 
             // Self-referencing relationship for parent-child categories
-            builder.HasOne(e => e.ParentCategory)
-                .WithMany(e => e.SubCategories)
-                .HasForeignKey(e => e.ParentCategoryId)
+            builder.HasOne(c => c.ParentCategory)
+                .WithMany(c => c.SubCategories)
+                .HasForeignKey(c => c.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Category-Quiz relationship
-            builder.HasMany(e => e.Quizzes)
-                .WithOne(e => e.Category)
-                .HasForeignKey(e => e.CategoryId)
+            builder.HasMany(c => c.Quizzes)
+                .WithOne(c => c.Category)
+                .HasForeignKey(c => c.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

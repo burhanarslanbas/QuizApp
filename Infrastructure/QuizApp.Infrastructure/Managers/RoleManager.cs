@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using QuizApp.Application.DTOs.Requests.Role;
 using QuizApp.Application.DTOs.Responses.Role;
 using QuizApp.Application.Services;
+using QuizApp.Application.Exceptions;
 using QuizApp.Domain.Entities.Identity;
 using System.Security.Claims;
 
@@ -28,11 +29,7 @@ public class RoleManager : IRoleService
         var role = await _roleManager.FindByNameAsync(roleName);
         if (role == null)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role not found",
-                Errors = new List<string> { "Role not found" }
-            };
+            throw new NotFoundException("Role not found");
         }
 
         var claims = await _roleManager.GetClaimsAsync(role);
@@ -59,11 +56,7 @@ public class RoleManager : IRoleService
         var result = await _roleManager.CreateAsync(role);
         if (!result.Succeeded)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role creation failed",
-                Errors = result.Errors.Select(e => e.Description).ToList()
-            };
+            throw new BusinessException($"Role creation failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
 
         if (request.Claims.Any())
@@ -87,11 +80,7 @@ public class RoleManager : IRoleService
         var role = await _roleManager.FindByIdAsync(request.Id.ToString());
         if (role == null)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role not found",
-                Errors = new List<string> { "Role not found" }
-            };
+            throw new NotFoundException("Role not found");
         }
 
         role.Name = request.Name;
@@ -102,11 +91,7 @@ public class RoleManager : IRoleService
         var result = await _roleManager.UpdateAsync(role);
         if (!result.Succeeded)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role update failed",
-                Errors = result.Errors.Select(e => e.Description).ToList()
-            };
+            throw new BusinessException($"Role update failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
 
         if (request.Claims.Any())
@@ -136,7 +121,11 @@ public class RoleManager : IRoleService
         var role = await _roleManager.FindByIdAsync(roleId.ToString());
         if (role != null)
         {
-            await _roleManager.DeleteAsync(role);
+            var result = await _roleManager.DeleteAsync(role);
+            if (!result.Succeeded)
+            {
+                throw new BusinessException($"Role deletion failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
         }
     }
 
@@ -145,11 +134,7 @@ public class RoleManager : IRoleService
         var role = await _roleManager.FindByIdAsync(roleId.ToString());
         if (role == null)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role not found",
-                Errors = new List<string> { "Role not found" }
-            };
+            throw new NotFoundException("Role not found");
         }
 
         var claims = await _roleManager.GetClaimsAsync(role);
@@ -205,31 +190,19 @@ public class RoleManager : IRoleService
         var user = await _userManager.FindByIdAsync(request.UserId);
         if (user == null)
         {
-            return new RoleErrorResponse
-            {
-                Message = "User not found",
-                Errors = new List<string> { "User not found" }
-            };
+            throw new NotFoundException("User not found");
         }
 
         var role = await _roleManager.FindByNameAsync(request.RoleName);
         if (role == null)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role not found",
-                Errors = new List<string> { "Role not found" }
-            };
+            throw new NotFoundException("Role not found");
         }
 
         var result = await _userManager.AddToRoleAsync(user, role.Name!);
         if (!result.Succeeded)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role assignment failed",
-                Errors = result.Errors.Select(e => e.Description).ToList()
-            };
+            throw new BusinessException($"Role assignment failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
 
         return new RoleResponse
@@ -248,31 +221,19 @@ public class RoleManager : IRoleService
         var user = await _userManager.FindByIdAsync(request.UserId);
         if (user == null)
         {
-            return new RoleErrorResponse
-            {
-                Message = "User not found",
-                Errors = new List<string> { "User not found" }
-            };
+            throw new NotFoundException("User not found");
         }
 
         var role = await _roleManager.FindByNameAsync(request.RoleName);
         if (role == null)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role not found",
-                Errors = new List<string> { "Role not found" }
-            };
+            throw new NotFoundException("Role not found");
         }
 
         var result = await _userManager.RemoveFromRoleAsync(user, role.Name!);
         if (!result.Succeeded)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role removal failed",
-                Errors = result.Errors.Select(e => e.Description).ToList()
-            };
+            throw new BusinessException($"Role removal failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
 
         return new RoleResponse
@@ -302,11 +263,7 @@ public class RoleManager : IRoleService
         var role = await _roleManager.FindByNameAsync(roleName);
         if (role == null)
         {
-            return new RoleErrorResponse
-            {
-                Message = "Role not found",
-                Errors = new List<string> { "Role not found" }
-            };
+            throw new NotFoundException("Role not found");
         }
 
         foreach (var claim in claims)
@@ -325,4 +282,4 @@ public class RoleManager : IRoleService
             Claims = claims.ToList()
         };
     }
-} 
+}

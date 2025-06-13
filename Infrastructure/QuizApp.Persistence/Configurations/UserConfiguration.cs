@@ -8,17 +8,20 @@ namespace QuizApp.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<AppUser> builder)
         {
-            builder.Property(e => e.FullName).HasColumnName("FullName").IsRequired().HasMaxLength(100);
+            builder.Property(u => u.FullName)
+                .HasColumnName("FullName")
+                .IsRequired()
+                .HasMaxLength(100);
 
             // Relationships
-            builder.HasMany(e => e.Quizzes)
-                .WithOne(e => e.Creator)
-                .HasForeignKey(e => e.CreatorId)
+            builder.HasMany(u => u.Quizzes)
+                .WithOne(q => q.Creator)
+                .HasForeignKey(q => q.CreatorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(e => e.QuizResults)
-                .WithOne(e => e.Student)
-                .HasForeignKey(e => e.StudentId)
+            builder.HasMany(u => u.QuizResults)
+                .WithOne(qr => qr.User)
+                .HasForeignKey(qr => qr.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

@@ -14,33 +14,34 @@ namespace QuizApp.Application.MappingProfiles.Auth
             CreateMap<AppUser, RefreshTokenRequest>().ReverseMap();
             CreateMap<AppUser, RevokeTokenRequest>().ReverseMap();
 
-            //CreateMap<AppUser, RegisterSuccessResponse>()
-            //    .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
-            //    {
-            //        Id = src.Id,
-            //        UserName = src.UserName!,
-            //        Email = src.Email!,
-            //        FullName = src.FullName,
-            //        PhoneNumber = src.PhoneNumber!,
-            //        Roles = new List<string>()
-            //    }));
-
-            //CreateMap<AppUser, LoginSuccessResponse>()
-            //    .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
-            //    {
-            //        Id = src.Id,
-            //        UserName = src.UserName!,
-            //        Email = src.Email!,
-            //        FullName = src.FullName,
-            //        PhoneNumber = src.PhoneNumber!,
-            //        Roles = new List<string>()
-            //    }));
-
             CreateMap<AppUser, Token>()
                 .ForMember(dest => dest.AccessToken, opt => opt.Ignore())
                 .ForMember(dest => dest.RefreshToken, opt => opt.Ignore())
                 .ForMember(dest => dest.Expiration, opt => opt.Ignore())
                 .ForMember(dest => dest.RefreshTokenExpiration, opt => opt.Ignore());
+
+            /*CreateMap<AppUser, RegisterSuccessResponse>()
+    .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
+    {
+        Id = src.Id,
+        UserName = src.UserName!,
+        Email = src.Email!,
+        FullName = src.FullName,
+        PhoneNumber = src.PhoneNumber!,
+        Roles = new List<string>()
+    }));
+*/
+            /*CreateMap<AppUser, LoginSuccessResponse>()
+            //    .ForMember(dest => dest.UserInfo, opt => opt.MapFrom(src => new UserInfo
+            //    {
+            //        Id = src.Id,
+            //        UserName = src.UserName!,
+            //        Email = src.Email!,
+            //        FullName = src.FullName,
+            //        PhoneNumber = src.PhoneNumber!,
+            //        Roles = new List<string>()
+            //    }));
+            */
         }
     }
 }

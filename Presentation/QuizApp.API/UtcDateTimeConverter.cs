@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,4 +8,4 @@ public class UtcDateTimeConverter : JsonConverter<DateTime>
 
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
         => writer.WriteStringValue(value.ToUniversalTime().ToString("o"));
-} 
+}

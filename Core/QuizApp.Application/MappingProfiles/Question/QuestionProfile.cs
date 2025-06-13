@@ -1,23 +1,29 @@
 using AutoMapper;
 using QuizApp.Application.DTOs.Requests.Question;
 using QuizApp.Application.DTOs.Responses.Question;
-using QuizApp.Domain.Entities;
 
-namespace QuizApp.Application.MappingProfiles;
+namespace QuizApp.Application.MappingProfiles.Question;
 
 public class QuestionProfile : Profile
 {
     public QuestionProfile()
     {
-        // Basic CRUD mappings
-        CreateMap<Question, QuestionDTO>().ReverseMap();
-        CreateMap<Question, CreateQuestionRequest>().ReverseMap();
-        CreateMap<Question, UpdateQuestionRequest>().ReverseMap();
-        CreateMap<Question, DeleteQuestionRequest>().ReverseMap();
-        CreateMap<Question, GetQuestionByIdRequest>().ReverseMap();
+        // Request to Entity
+        CreateMap<CreateQuestionRequest, Domain.Entities.Question>();
+        CreateMap<UpdateQuestionRequest, Domain.Entities.Question>();
+        CreateMap<DeleteQuestionRequest, Domain.Entities.Question>();
+        CreateMap<GetQuestionByIdRequest, Domain.Entities.Question>();
+        CreateMap<GetQuestionsRequest, Domain.Entities.Question>();
+        CreateMap<GetQuestionsByRepoRequest, Domain.Entities.Question>();
 
-        // Detail response mapping
-        CreateMap<Question, QuestionDetailResponse>()
-            .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.Options));
+        // Bulk Operations
+        CreateMap<CreateRangeQuestionRequest, Domain.Entities.Question>();
+        CreateMap<UpdateRangeQuestionRequest, Domain.Entities.Question>();
+        CreateMap<DeleteRangeQuestionRequest, Domain.Entities.Question>();
+        CreateMap<UpdateQuestionRepoIdRequest, Domain.Entities.Question>();
+        CreateMap<UpdateQuestionRepoIdsRequest, Domain.Entities.Question>();
+
+        // Entity to Response
+        CreateMap<Domain.Entities.Question, QuestionResponse>();
     }
 }

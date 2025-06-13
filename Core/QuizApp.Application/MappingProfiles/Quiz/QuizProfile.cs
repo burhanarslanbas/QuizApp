@@ -1,32 +1,29 @@
 using AutoMapper;
 using QuizApp.Application.DTOs.Requests.Quiz;
-using QuizApp.Application.DTOs.Responses.Option;
-using QuizApp.Application.DTOs.Responses.Question;
 using QuizApp.Application.DTOs.Responses.Quiz;
-using QuizApp.Domain.Entities;
 
-namespace QuizApp.Application.MappingProfiles;
+namespace QuizApp.Application.MappingProfiles.Quiz;
 
 public class QuizProfile : Profile
 {
     public QuizProfile()
     {
-        // Basic CRUD mappings
-        CreateMap<Quiz, QuizDTO>().ReverseMap();
-        CreateMap<Quiz, CreateQuizRequest>().ReverseMap();
-        CreateMap<Quiz, UpdateQuizRequest>().ReverseMap();
-        CreateMap<Quiz, DeleteQuizRequest>().ReverseMap();
-        CreateMap<Quiz, GetQuizByIdRequest>().ReverseMap();
+        // Request to Entity
+        CreateMap<CreateQuizRequest, Domain.Entities.Quiz>();
+        CreateMap<UpdateQuizRequest, Domain.Entities.Quiz>();
+        CreateMap<DeleteQuizRequest, Domain.Entities.Quiz>();
+        CreateMap<GetQuizByIdRequest, Domain.Entities.Quiz>();
+        CreateMap<GetQuizzesRequest, Domain.Entities.Quiz>();
+        CreateMap<GetQuizzesByCategoryRequest, Domain.Entities.Quiz>();
+        CreateMap<GetQuizzesByUserRequest, Domain.Entities.Quiz>();
+        CreateMap<GetActiveQuizzesRequest, Domain.Entities.Quiz>();
 
-        // Detail response mapping
-        CreateMap<Quiz, QuizDetailResponse>()
-            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
-            .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Questions));
+        // Bulk Operations
+        CreateMap<CreateRangeQuizRequest, Domain.Entities.Quiz>();
+        CreateMap<UpdateRangeQuizRequest, Domain.Entities.Quiz>();
+        CreateMap<DeleteRangeQuizRequest, Domain.Entities.Quiz>();
 
-        // Related entity mappings
-        CreateMap<Question, QuestionDetailResponse>()
-            .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.Options));
-
-        CreateMap<Option, OptionDetailResponse>();
+        // Entity to Response
+        CreateMap<Domain.Entities.Quiz, QuizResponse>();
     }
 }

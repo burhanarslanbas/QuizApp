@@ -7,11 +7,11 @@ namespace QuizApp.Application.Validators.Auth
     {
         public LoginRequestValidator()
         {
-            RuleFor(x => x.UserNameOrEmail)
-                .NotEmpty().WithMessage("Kullanıcı adı veya email boş olamaz.");
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email boş olamaz.");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Şifre boş olamaz.");
         }
     }
-} 
+}

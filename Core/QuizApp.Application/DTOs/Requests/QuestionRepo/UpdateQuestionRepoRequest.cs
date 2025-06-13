@@ -1,5 +1,3 @@
-using QuizApp.Application.DTOs.Requests.Option;
-
 namespace QuizApp.Application.DTOs.Requests.QuestionRepo;
 
 public record UpdateQuestionRepoRequest
@@ -10,4 +8,4 @@ public record UpdateQuestionRepoRequest
     public int MaxQuestions { get; set; } = 10;
     public bool IsPublic { get; set; } = false;
     public bool IsActive { get; set; } = true;
-} 
+}

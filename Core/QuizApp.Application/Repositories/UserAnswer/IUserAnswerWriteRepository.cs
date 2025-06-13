@@ -1,6 +1,5 @@
-using QuizApp.Domain.Entities;
+namespace QuizApp.Application.Repositories.UserAnswer;
 
-namespace QuizApp.Application.Repositories;
-public interface IUserAnswerWriteRepository : IWriteRepository<UserAnswer>
+public interface IUserAnswerWriteRepository : IWriteRepository<Domain.Entities.UserAnswer>
 {
 }

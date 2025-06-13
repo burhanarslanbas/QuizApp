@@ -1,6 +1,6 @@
-using QuizApp.Domain.Entities;
 
-namespace QuizApp.Application.Repositories;
-public interface IOptionWriteRepository : IWriteRepository<Option>
+namespace QuizApp.Application.Repositories.Option;
+
+public interface IOptionWriteRepository : IWriteRepository<Domain.Entities.Option>
 {
 }

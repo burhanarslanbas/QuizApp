@@ -1,0 +1,20 @@
+.token-timer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.token-timer__label {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.token-timer__time {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0d6efd;
+} 

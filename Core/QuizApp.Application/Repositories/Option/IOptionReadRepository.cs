@@ -1,6 +1,5 @@
-using QuizApp.Domain.Entities;
+namespace QuizApp.Application.Repositories.Option;
 
-namespace QuizApp.Application.Repositories;
-public interface IOptionReadRepository : IReadRepository<Option>
+public interface IOptionReadRepository : IReadRepository<Domain.Entities.Option>
 {
 }

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace QuizApp.Application.Exceptions.HttpProblemDetails;
 
@@ -11,4 +10,4 @@ public class ValidationProblemDetails : Microsoft.AspNetCore.Mvc.ValidationProbl
         Status = StatusCodes.Status400BadRequest;
         Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
     }
-} 
+}

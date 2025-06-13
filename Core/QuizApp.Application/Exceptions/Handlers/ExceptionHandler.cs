@@ -1,6 +1,3 @@
-using FluentValidation;
-using QuizApp.Application.Exceptions.Types;
-
 namespace QuizApp.Application.Exceptions.Handlers;
 
 public abstract class ExceptionHandler
@@ -22,4 +19,4 @@ public abstract class ExceptionHandler
     protected abstract Task HandleException(UnauthorizedAccessException unauthorizedException);
     protected abstract Task HandleException(ForbiddenAccessException forbiddenException);
     protected abstract Task HandleException(Exception exception);
-} 
+}

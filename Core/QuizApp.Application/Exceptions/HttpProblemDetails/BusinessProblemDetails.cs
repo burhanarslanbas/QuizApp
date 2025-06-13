@@ -12,4 +12,4 @@ public class BusinessProblemDetails : ProblemDetails
         Status = StatusCodes.Status400BadRequest;
         Type = "https://quizapp.com/props/business";
     }
-} 
+}

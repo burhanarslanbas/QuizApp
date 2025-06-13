@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace QuizApp.Application.DTOs.Requests.Role;
 
 public class UpdateRoleRequest
@@ -10,4 +7,4 @@ public class UpdateRoleRequest
     public string? Description { get; set; }
     public bool IsActive { get; set; }
     public List<string> Claims { get; set; } = new();
-} 
+}

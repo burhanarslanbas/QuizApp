@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using QuizApp.Application.DTOs.Requests.Category;
 using QuizApp.Application.DTOs.Responses.Category;
-using QuizApp.Application.Repositories;
+using QuizApp.Application.Exceptions;
+using QuizApp.Application.Repositories.Category;
 using QuizApp.Application.Services;
 using QuizApp.Domain.Entities;
-using QuizApp.Application.Exceptions;
-using Microsoft.EntityFrameworkCore;
 
 namespace QuizApp.Infrastructure.Managers;
 
@@ -22,98 +22,105 @@ public class CategoryManager : ICategoryService
         _mapper = mapper;
     }
 
-    public async Task<CategoryDetailResponse> CreateAsync(CreateCategoryRequest request)
+    public async Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
     {
         var category = _mapper.Map<Category>(request);
-        var result = await _categoryWriteRepository.AddAsync(category);
-        if (!result)
-            throw new BusinessException("Failed to create category");
-
-        return _mapper.Map<CategoryDetailResponse>(category);
+        await _categoryWriteRepository.AddAsync(category);
+        await _categoryWriteRepository.SaveAsync();
+        return _mapper.Map<CategoryResponse>(category);
     }
 
-    public async Task<List<CategoryDetailResponse>> CreateRange(CreateRangeCategoryRequest request)
+    public async Task<CategoryResponse> UpdateAsync(UpdateCategoryRequest request)
     {
-        var categories = _mapper.Map<List<Category>>(request.Categories);
-        var result = await _categoryWriteRepository.AddRangeAsync(categories);
-        if (!result)
-            throw new BusinessException("Failed to create categories");
+        var category = await _categoryReadRepository.GetByIdAsync(request.Id);
+        if (category == null)
+            throw new NotFoundException($"Category with ID {request.Id} not found");
 
-        return _mapper.Map<List<CategoryDetailResponse>>(categories);
+        _mapper.Map(request, category);
+        _categoryWriteRepository.Update(category);
+        await _categoryWriteRepository.SaveAsync();
+        return _mapper.Map<CategoryResponse>(category);
     }
 
     public async Task DeleteAsync(DeleteCategoryRequest request)
     {
-        var result = await _categoryWriteRepository.RemoveById(request.Id);
-        if (!result)
-            throw new NotFoundException($"Category with ID {request.Id} not found.");
+        var category = await _categoryReadRepository.GetByIdAsync(request.Id);
+        if (category == null)
+            throw new NotFoundException($"Category with ID {request.Id} not found");
+
+        _categoryWriteRepository.Remove(category);
+        await _categoryWriteRepository.SaveAsync();
     }
 
-    public bool DeleteRange(DeleteRangeCategoryRequest request)
+    public async Task<CategoryResponse> GetByIdAsync(GetCategoryByIdRequest request)
     {
-        var categories = _categoryReadRepository.GetWhere(x => request.Ids.Contains(x.Id)).ToList();
-        if (!categories.Any())
-            throw new NotFoundException("No categories found with the provided IDs.");
+        var category = await _categoryReadRepository.GetAll()
+            .Include(c => c.Quizzes)
+            .FirstOrDefaultAsync(c => c.Id == request.Id);
 
-        var result = _categoryWriteRepository.RemoveRange(categories);
-        if (!result)
-            throw new BusinessException("Failed to delete categories.");
+        if (category == null)
+            throw new NotFoundException($"Category with ID {request.Id} not found");
 
-        return result;
+        return _mapper.Map<CategoryResponse>(category);
     }
 
-    public List<CategoryDetailResponse> GetAll(GetCategoriesRequest request)
+    public async Task<IEnumerable<CategoryResponse>> GetAllAsync(GetCategoriesRequest request)
     {
-        var categories = _categoryReadRepository.GetAll().ToList();
-        return _mapper.Map<List<CategoryDetailResponse>>(categories);
+        var query = _categoryReadRepository.GetAll()
+            .Include(c => c.Quizzes)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(request.SearchText))
+            query = query.Where(c => c.Name.Contains(request.SearchText));
+
+        if (request.ParentCategoryId != Guid.Empty)
+            query = query.Where(c => c.ParentCategoryId == request.ParentCategoryId);
+
+        query = query.Where(c => c.IsActive == request.IsActive);
+
+        var categories = await query.ToListAsync();
+        return _mapper.Map<IEnumerable<CategoryResponse>>(categories);
     }
 
-    public async Task<CategoryDetailResponse> GetByIdAsync(GetCategoryByIdRequest request)
+    public async Task<IEnumerable<CategoryResponse>> CreateRangeAsync(CreateRangeCategoryRequest request)
     {
-        try
-        {
-            var category = await _categoryReadRepository.GetByIdAsync(request.Id);
-            return _mapper.Map<CategoryDetailResponse>(category);
-        }
-        catch (InvalidOperationException)
-        {
-            throw new NotFoundException($"Category with ID {request.Id} not found.");
-        }
+        var categories = _mapper.Map<IEnumerable<Category>>(request.Categories);
+        await _categoryWriteRepository.AddRangeAsync(categories.ToList());
+        await _categoryWriteRepository.SaveAsync();
+        return _mapper.Map<IEnumerable<CategoryResponse>>(categories);
     }
 
-    public CategoryDetailResponse Update(UpdateCategoryRequest request)
+    public async Task<IEnumerable<CategoryResponse>> UpdateRangeAsync(UpdateRangeCategoryRequest request)
     {
-        try
-        {
-            var category = _categoryReadRepository.GetByIdAsync(request.Id).Result;
-            _mapper.Map(request, category);
-            var result = _categoryWriteRepository.Update(category);
-            if (!result)
-                throw new BusinessException($"Failed to update category with ID {request.Id}");
+        var categories = await _categoryReadRepository.GetAll()
+            .Where(c => request.Ids.Contains(c.Id))
+            .ToListAsync();
 
-            return _mapper.Map<CategoryDetailResponse>(category);
-        }
-        catch (InvalidOperationException)
-        {
-            throw new NotFoundException($"Category with ID {request.Id} not found.");
-        }
-    }
-
-    public List<CategoryDetailResponse> UpdateRange(UpdateRangeCategoryRequest request)
-    {
-        var categories = _categoryReadRepository.GetWhere(x => request.Categories.Select(c => c.Id).Contains(x.Id)).ToList();
-        if (!categories.Any())
-            throw new NotFoundException("No categories found with the provided IDs.");
+        if (categories.Count != request.Ids.Count)
+            throw new NotFoundException("One or more categories not found");
 
         foreach (var category in categories)
         {
-            var updateRequest = request.Categories.First(c => c.Id == category.Id);
-            _mapper.Map(updateRequest, category);
-            var result = _categoryWriteRepository.Update(category);
-            if (!result)
-                throw new BusinessException($"Failed to update category with ID {category.Id}");
+            var updateRequest = request.Categories.FirstOrDefault(c => c.Id == category.Id);
+            if (updateRequest != null)
+                _mapper.Map(updateRequest, category);
         }
 
-        return _mapper.Map<List<CategoryDetailResponse>>(categories);
+        _categoryWriteRepository.UpdateRange(categories.ToList());
+        await _categoryWriteRepository.SaveAsync();
+        return _mapper.Map<IEnumerable<CategoryResponse>>(categories);
+    }
+
+    public async Task DeleteRangeAsync(DeleteRangeCategoryRequest request)
+    {
+        var categories = await _categoryReadRepository.GetAll()
+            .Where(c => request.Ids.Contains(c.Id))
+            .ToListAsync();
+
+        if (categories.Count != request.Ids.Count)
+            throw new NotFoundException("One or more categories not found");
+
+        _categoryWriteRepository.RemoveRange(categories);
+        await _categoryWriteRepository.SaveAsync();
     }
 }

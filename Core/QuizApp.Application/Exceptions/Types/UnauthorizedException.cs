@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace QuizApp.Application.Exceptions;
+namespace QuizApp.Application.Exceptions.Types;
 
 public class UnauthorizedException : Exception
 {
@@ -19,4 +19,4 @@ public class UnauthorizedException : Exception
     protected UnauthorizedException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
-} 
+}

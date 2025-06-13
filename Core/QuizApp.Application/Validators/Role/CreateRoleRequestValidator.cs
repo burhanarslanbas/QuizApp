@@ -18,4 +18,4 @@ public class CreateRoleRequestValidator : AbstractValidator<CreateRoleRequest>
         RuleFor(x => x.Claims)
             .NotNull();
     }
-} 
+}

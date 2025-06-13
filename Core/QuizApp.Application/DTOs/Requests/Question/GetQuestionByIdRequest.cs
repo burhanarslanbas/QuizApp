@@ -1,6 +1,3 @@
 namespace QuizApp.Application.DTOs.Requests.Question;
 
-public record GetQuestionByIdRequest
-{
-    public Guid Id { get; set; }
-} 
+public record GetQuestionByIdRequest(Guid Id);

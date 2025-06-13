@@ -12,4 +12,4 @@ public class ForbiddenProblemDetails : ProblemDetails
         Status = StatusCodes.Status403Forbidden;
         Type = "https://quizapp.com/props/forbidden";
     }
-} 
+}

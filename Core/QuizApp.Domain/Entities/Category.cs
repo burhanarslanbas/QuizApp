@@ -10,7 +10,7 @@ public class Category : BaseEntity
         Quizzes = new HashSet<Quiz>();
     }
     public string Name { get; set; } = default!; // Kategori adı
-    public string Description { get; set; } = default!; // Kategori açıklaması
+    public string? Description { get; set; } // Kategori açıklaması
     public Guid? ParentCategoryId { get; set; } // Üst kategori ID'si
     public bool IsActive { get; set; } = true; // Aktiflik durumu
 

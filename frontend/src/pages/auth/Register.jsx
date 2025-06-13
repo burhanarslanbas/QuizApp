@@ -1,277 +1,311 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  TextField, 
-  Button, 
-  Paper,
-  Link,
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useToken } from '../../context/TokenContext';
+import { useNotification } from '../../context/NotificationContext';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
   Alert,
-  Grid
+  InputAdornment,
+  IconButton,
+  Avatar,
+  Fade,
+  Link
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/api/auth';
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const Register = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    userName: '',
-    fullName: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [error, setError] = useState('');
+  const { register } = useToken();
+  const { showNotification } = useNotification();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    userName: ''
+  });
+  const [errors, setErrors] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    userName: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Hata mesajını temizle
+    setErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
     setError('');
   };
 
   const validateForm = () => {
-    if (!formData.email.trim()) {
-      setError('E-posta adresi gereklidir');
-      return false;
-    }
-    if (!formData.userName.trim()) {
-      setError('Kullanıcı adı gereklidir');
-      return false;
-    }
+    const newErrors = {
+      fullName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      userName: ''
+    };
+    let isValid = true;
+
     if (!formData.fullName.trim()) {
-      setError('Ad Soyad gereklidir');
-      return false;
+      newErrors.fullName = 'Ad Soyad gereklidir';
+      isValid = false;
     }
-    if (!formData.password.trim()) {
-      setError('Şifre gereklidir');
-      return false;
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'E-posta adresi gereklidir';
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Geçerli bir e-posta adresi giriniz';
+      isValid = false;
     }
-    if (!formData.confirmPassword.trim()) {
-      setError('Şifre tekrarı gereklidir');
-      return false;
+
+    if (!formData.userName.trim()) {
+      newErrors.userName = 'Kullanıcı adı gereklidir';
+      isValid = false;
     }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Şifreler eşleşmiyor');
-      return false;
+
+    if (!formData.password) {
+      newErrors.password = 'Şifre gereklidir';
+      isValid = false;
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Şifre en az 6 karakter olmalıdır';
+      isValid = false;
     }
-    if (formData.password.length < 6) {
-      setError('Şifre en az 6 karakter olmalıdır');
-      return false;
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Şifre tekrarı gereklidir';
+      isValid = false;
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Şifreler eşleşmiyor';
+      isValid = false;
     }
-    if (formData.userName.length < 3) {
-      setError('Kullanıcı adı en az 3 karakter olmalıdır');
-      return false;
-    }
-    if (formData.fullName.length < 3) {
-      setError('Ad Soyad en az 3 karakter olmalıdır');
-      return false;
-    }
-    // E-posta formatı kontrolü
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError('Geçerli bir e-posta adresi giriniz');
-      return false;
-    }
-    return true;
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+    
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
     try {
-      const response = await authService.register({
-        email: formData.email,
-        userName: formData.userName,
+      const response = await register({
         fullName: formData.fullName,
+        email: formData.email,
         password: formData.password,
-        confirmPassword: formData.confirmPassword
+        confirmPassword: formData.confirmPassword,
+        userName: formData.userName
       });
 
-      if (response && response.success) {
-        // Başarılı kayıt sonrası otomatik giriş yap
-        const loginResponse = await authService.login(formData.userName, formData.password);
-        if (loginResponse && loginResponse.success && loginResponse.token) {
-          navigate('/dashboard');
-        } else {
-          navigate('/login');
-        }
+      showNotification('Kayıt başarılı! Giriş yapabilirsiniz.', 'success');
+      navigate('/login');
+    } catch (error) {
+      console.error('Register error:', error);
+      if (error.errors && Array.isArray(error.errors)) {
+        setError(error.errors.join('\n'));
       } else {
-        setError('Kayıt işlemi başarısız. Lütfen bilgilerinizi kontrol edin.');
-      }
-    } catch (err) {
-      if (err.message.includes('409')) {
-        setError('Bu e-posta adresi veya kullanıcı adı zaten kullanılıyor');
-      } else {
-        setError(err.message || 'Kayıt olurken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+        setError(error.message || 'Kayıt sırasında bir hata oluştu');
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show);
+  const handleMouseDownPassword = (event) => event.preventDefault();
+
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        width: '100vw',
-        background: 'linear-gradient(135deg, #64b5f6 0%, #81c784 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        py: 4,
-        px: 2
+        bgcolor: 'background.default',
+        p: 2,
       }}
     >
-      <Container maxWidth="sm">
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: 2
-          }}
-        >
-          <Typography
-            component="h1"
-            variant="h4"
-            sx={{
-              mb: 3,
-              color: '#64b5f6',
-              fontWeight: 'bold'
-            }}
-          >
-            Kayıt Ol
-          </Typography>
+      <Fade in timeout={600}>
+        <Card sx={{ maxWidth: 400, width: '100%', borderRadius: 4, boxShadow: 6, p: 1 }}>
+          <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Avatar sx={{ m: 1, bgcolor: 'primary.main', width: 56, height: 56 }}>
+              <PersonAddOutlinedIcon fontSize="large" />
+            </Avatar>
+            <Typography variant="h4" component="h1" align="center" gutterBottom fontWeight={700}>
+              Kayıt Ol
+            </Typography>
+            <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
+              Quiz uygulamasına hoş geldiniz
+            </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+            {error && (
+              <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
+                {error.split('\n').map((line, idx) => (
+                  <div key={idx}>{line}</div>
+                ))}
+              </Alert>
+            )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="E-posta Adresi"
-              name="email"
-              type="email"
-              autoComplete="email"
-              autoFocus
-              value={formData.email}
-              onChange={handleChange}
-              disabled={loading}
-              error={!!error && error.includes('e-posta')}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="userName"
-              label="Kullanıcı Adı"
-              name="userName"
-              autoComplete="username"
-              value={formData.userName}
-              onChange={handleChange}
-              disabled={loading}
-              error={!!error && error.includes('Kullanıcı adı')}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="fullName"
-              label="Ad Soyad"
-              name="fullName"
-              autoComplete="name"
-              value={formData.fullName}
-              onChange={handleChange}
-              disabled={loading}
-              error={!!error && error.includes('Ad Soyad')}
-              sx={{ mb: 2 }}
-            />
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  name="password"
-                  label="Şifre"
-                  type="password"
-                  id="password"
-                  autoComplete="new-password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={loading}
-                  error={!!error && error.includes('Şifre')}
-                  helperText="En az 6 karakter"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  name="confirmPassword"
-                  label="Şifre Tekrar"
-                  type="password"
-                  id="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  disabled={loading}
-                  error={!!error && error.includes('Şifre')}
-                />
-              </Grid>
-            </Grid>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading}
-              sx={{
-                mt: 3,
-                mb: 2,
-                py: 1.5,
-                backgroundColor: '#64b5f6',
-                '&:hover': {
-                  backgroundColor: '#42a5f5'
-                }
-              }}
-            >
-              {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'}
-            </Button>
-            <Box sx={{ textAlign: 'center' }}>
-              <Link
-                component="button"
-                variant="body2"
-                onClick={() => navigate('/login')}
-                sx={{ color: '#64b5f6' }}
+            <form onSubmit={handleSubmit} style={{ width: '100%' }} autoComplete="on">
+              <TextField
+                fullWidth
+                label="Ad Soyad"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                margin="normal"
+                required
+                error={!!errors.fullName}
+                helperText={errors.fullName}
+                size="medium"
+                variant="outlined"
+                autoComplete="name"
+              />
+              <TextField
+                fullWidth
+                label="Kullanıcı Adı"
+                name="userName"
+                value={formData.userName}
+                onChange={handleChange}
+                margin="normal"
+                required
+                error={!!errors.userName}
+                helperText={errors.userName}
+                size="medium"
+                variant="outlined"
+                autoComplete="username"
+              />
+              <TextField
+                fullWidth
+                label="E-posta"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                margin="normal"
+                required
+                error={!!errors.email}
+                helperText={errors.email}
+                size="medium"
+                variant="outlined"
+                autoComplete="email"
+              />
+              <TextField
+                fullWidth
+                label="Şifre"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={handleChange}
+                margin="normal"
+                required
+                error={!!errors.password}
+                helperText={errors.password}
+                size="medium"
+                variant="outlined"
+                autoComplete="new-password"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Şifre Tekrarı"
+                name="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                margin="normal"
+                required
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                size="medium"
+                variant="outlined"
+                autoComplete="new-password"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle confirm password visibility"
+                        onClick={handleClickShowConfirmPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                size="large"
                 disabled={loading}
+                sx={{
+                  mt: 3,
+                  mb: 2,
+                  py: 1.5,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontSize: '1.1rem'
+                }}
               >
-                Zaten hesabınız var mı? Giriş yapın
-              </Link>
-            </Box>
-          </Box>
-        </Paper>
-      </Container>
+                {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'}
+              </Button>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Zaten hesabınız var mı?{' '}
+                  <Link component={RouterLink} to="/login" color="primary" sx={{ textDecoration: 'none' }}>
+                    Giriş Yap
+                  </Link>
+                </Typography>
+              </Box>
+            </form>
+          </CardContent>
+        </Card>
+      </Fade>
     </Box>
   );
 };
 
-export default Register; 
+export default Register;

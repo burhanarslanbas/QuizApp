@@ -1,6 +1,5 @@
-using QuizApp.Domain.Entities;
+namespace QuizApp.Application.Repositories.Quiz;
 
-namespace QuizApp.Application.Repositories;
-public interface IQuizWriteRepository : IWriteRepository<Quiz>
+public interface IQuizWriteRepository : IWriteRepository<Domain.Entities.Quiz>
 {
 }

@@ -1,16 +1,15 @@
 using QuizApp.Application.DTOs.Requests.UserAnswer;
 using QuizApp.Application.DTOs.Responses.UserAnswer;
-using QuizApp.Domain.Entities;
 
 namespace QuizApp.Application.Services;
 
 public interface IUserAnswerService
 {
-    Task<UserAnswerDetailResponse> GetByIdAsync(GetUserAnswerByIdRequest request);
-    List<UserAnswerDetailResponse> GetAll(GetUserAnswersRequest request);
-    List<UserAnswerDetailResponse> GetByQuizResult(GetUserAnswersByQuizResultRequest request);
-    Task<UserAnswerDetailResponse> CreateAsync(CreateUserAnswerRequest request);
-    UserAnswerDetailResponse Update(UpdateUserAnswerRequest request);
+    Task<UserAnswerResponse> CreateAsync(CreateUserAnswerRequest request);
+    Task<UserAnswerResponse> UpdateAsync(UpdateUserAnswerRequest request);
     Task DeleteAsync(DeleteUserAnswerRequest request);
-    bool DeleteRange(DeleteRangeUserAnswerRequest request);
-} 
+    Task<UserAnswerResponse> GetByIdAsync(GetUserAnswerByIdRequest request);
+    Task<IEnumerable<UserAnswerResponse>> GetAllAsync(GetUserAnswersRequest request);
+    Task<IEnumerable<UserAnswerResponse>> GetByQuizResultAsync(GetUserAnswersByQuizResultRequest request);
+    Task DeleteRangeAsync(DeleteRangeUserAnswerRequest request);
+}

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using QuizApp.Domain.Entities;
+using QuizApp.Domain.Enums;
 
 namespace QuizApp.Persistence.Configurations
 {
@@ -9,19 +10,62 @@ namespace QuizApp.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Question> builder)
         {
             builder.HasKey(q => q.Id);
-            builder.Property(q => q.QuestionText).IsRequired();
-            builder.Property(q => q.Points).IsRequired();
-            builder.Property(q => q.OrderIndex).IsRequired();
-            builder.Property(q => q.IsActive).IsRequired();
-            builder.Property(q => q.QuestionTypeId).IsRequired();
 
-            builder.HasOne(q => q.Quiz)
-                .WithMany(q => q.Questions)
-                .HasForeignKey(q => q.QuizId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // BaseEntity alanları
+            builder.Property(q => q.Id)
+                .HasColumnName("Id")
+                .IsRequired();
 
+            builder.Property(q => q.CreatedDate)
+                .HasColumnName("CreatedDate")
+                .IsRequired();
+
+            builder.Property(q => q.UpdatedDate)
+                .HasColumnName("UpdatedDate")
+                .IsRequired(false);
+
+            builder.Property(q => q.DeletedDate)
+                .HasColumnName("DeletedDate")
+                .IsRequired(false);
+
+            // Entity özel alanları
+            builder.Property(q => q.QuestionRepoId)
+                .HasColumnName("QuestionRepoId")
+                .IsRequired(false);
+
+            builder.Property(q => q.QuestionType)
+                .HasColumnName("QuestionType")
+                .IsRequired()
+                .HasDefaultValue(QuestionType.SingleChoice);
+
+            builder.Property(q => q.QuestionText)
+                .HasColumnName("QuestionText")
+                .IsRequired()
+                .HasMaxLength(1000);
+
+            builder.Property(q => q.Points)
+                .HasColumnName("Points")
+                .IsRequired()
+                .HasDefaultValue(1);
+
+            builder.Property(q => q.Explanation)
+                .HasColumnName("Explanation")
+                .IsRequired(false)
+                .HasMaxLength(2000);
+
+            builder.Property(q => q.ImageUrl)
+                .HasColumnName("ImageUrl")
+                .IsRequired(false)
+                .HasMaxLength(500);
+
+            builder.Property(q => q.IsActive)
+                .HasColumnName("IsActive")
+                .IsRequired()
+                .HasDefaultValue(true);
+
+            // İlişkiler
             builder.HasOne(q => q.QuestionRepo)
-                .WithMany(q => q.Questions)
+                .WithMany(qr => qr.Questions)
                 .HasForeignKey(q => q.QuestionRepoId)
                 .OnDelete(DeleteBehavior.SetNull);
 
@@ -34,6 +78,11 @@ namespace QuizApp.Persistence.Configurations
                 .WithOne(ua => ua.Question)
                 .HasForeignKey(ua => ua.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(q => q.QuizQuestions)
+                .WithOne(qq => qq.Question)
+                .HasForeignKey(qq => qq.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
-} 
+}

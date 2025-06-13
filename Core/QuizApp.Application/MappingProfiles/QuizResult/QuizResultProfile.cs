@@ -1,30 +1,28 @@
 using AutoMapper;
 using QuizApp.Application.DTOs.Requests.QuizResult;
 using QuizApp.Application.DTOs.Responses.QuizResult;
-using QuizApp.Domain.Entities;
 
-namespace QuizApp.Application.MappingProfiles;
+namespace QuizApp.Application.MappingProfiles.QuizResult;
 
 public class QuizResultProfile : Profile
 {
     public QuizResultProfile()
     {
-        // Basic CRUD mappings
-        CreateMap<QuizResult, QuizResultDTO>().ReverseMap();
-        CreateMap<QuizResult, CreateQuizResultRequest>().ReverseMap();
-        CreateMap<QuizResult, UpdateQuizResultRequest>().ReverseMap();
-        CreateMap<QuizResult, DeleteQuizResultRequest>().ReverseMap();
-        CreateMap<QuizResult, GetQuizResultByIdRequest>().ReverseMap();
+        // Request to Entity
+        CreateMap<CreateQuizResultRequest, Domain.Entities.QuizResult>();
+        CreateMap<UpdateQuizResultRequest, Domain.Entities.QuizResult>();
+        CreateMap<DeleteQuizResultRequest, Domain.Entities.QuizResult>();
+        CreateMap<GetQuizResultByIdRequest, Domain.Entities.QuizResult>();
+        CreateMap<GetQuizResultsRequest, Domain.Entities.QuizResult>();
+        CreateMap<GetQuizResultsByUserRequest, Domain.Entities.QuizResult>();
+        CreateMap<GetQuizResultsByQuizRequest, Domain.Entities.QuizResult>();
 
-        // Get operations
-        CreateMap<QuizResult, GetQuizResultsRequest>().ReverseMap();
-        CreateMap<QuizResult, GetQuizResultsByUserRequest>().ReverseMap();
-        CreateMap<QuizResult, GetQuizResultsByQuizRequest>().ReverseMap();
+        // Bulk Operations
+        CreateMap<CreateRangeQuizResultRequest, Domain.Entities.QuizResult>();
+        CreateMap<UpdateRangeQuizResultRequest, Domain.Entities.QuizResult>();
+        CreateMap<DeleteRangeQuizResultRequest, Domain.Entities.QuizResult>();
 
-        // Detail response mapping
-        CreateMap<QuizResult, QuizResultDetailResponse>()
-            .ForMember(dest => dest.QuizTitle, opt => opt.MapFrom(src => src.Quiz.Title))
-            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Student.UserName))
-            .ForMember(dest => dest.UserAnswers, opt => opt.MapFrom(src => src.StudentAnswers));
+        // Entity to Response
+        CreateMap<Domain.Entities.QuizResult, QuizResultResponse>();
     }
 }

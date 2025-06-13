@@ -1,68 +1,156 @@
-# QuizApp
+# Quiz App
 
-Bu proje, QuizApp uygulamasının backend API'sini ve Frontend yapısını içerir.
+Modern ve kullanıcı dostu bir quiz uygulaması. Öğretmenler quiz oluşturabilir, öğrenciler quiz çözebilir ve sonuçları analiz edebilir.
 
-## Gereksinimler
+## Özellikler
 
-- .NET 8.0 SDK
-- Visual Studio 2022 veya Visual Studio Code
-- SQL Server (LocalDB veya tam sürüm)
+### Genel Özellikler
+- 🎯 Rol tabanlı erişim kontrolü (Öğrenci, Öğretmen, Admin)
+- 📱 Responsive tasarım
+- 🔒 Güvenli kimlik doğrulama
+- 🌐 Modern ve kullanıcı dostu arayüz
+
+### Öğrenci Özellikleri
+- 📝 Quiz çözme
+- ⏱️ Süre takibi
+- 📊 Sonuç analizi
+- 🏆 Başarı istatistikleri
+
+### Öğretmen Özellikleri
+- ✏️ Quiz oluşturma ve düzenleme
+- 📊 Detaylı istatistikler
+- 👥 Öğrenci performans analizi
+- 📈 Başarı oranı takibi
+
+### Admin Özellikleri
+- 👥 Kullanıcı yönetimi
+- 📚 Kategori yönetimi
+- 🔧 Sistem ayarları
+- 📊 Genel istatistikler
+
+## Teknolojiler
+
+### Frontend
+- React
+- Material-UI
+- Redux Toolkit
+- React Router
+- Axios
+- Recharts
+
+### Backend
+- .NET Core
+- Entity Framework Core
+- SQL Server
+- JWT Authentication
 
 ## Kurulum
 
-1. Projeyi klonlayın:
+### Gereksinimler
+- Node.js (v14 veya üzeri)
+- .NET Core SDK (v6.0 veya üzeri)
+- SQL Server
+- Visual Studio 2022 (önerilen)
+
+### Frontend Kurulumu
 ```bash
-git clone https://github.com/[kullanıcı-adı]/QuizApp.git
-cd QuizApp
+# Proje dizinine git
+cd frontend
+
+# Bağımlılıkları yükle
+npm install
+
+# Geliştirme sunucusunu başlat
+npm start
 ```
 
-2. Bağımlılıkları yükleyin:
+### Backend Kurulumu
 ```bash
+# Proje dizinine git
+cd backend
+
+# Bağımlılıkları geri yükle
 dotnet restore
-```
 
-3. Veritabanını oluşturun:
-```bash
+# Veritabanını oluştur
 dotnet ef database update
+
+# Uygulamayı başlat
+dotnet run
 ```
 
-4. Uygulamayı çalıştırın:
-```bash
-dotnet run --project Presentation/QuizApp.API
-```
+## Kullanım
+
+### Öğrenci Olarak
+1. Quiz listesinden bir quiz seçin
+2. Quiz'i başlatın
+3. Soruları cevaplayın
+4. Sonuçlarınızı görüntüleyin
+
+### Öğretmen Olarak
+1. "Yeni Quiz" butonuna tıklayın
+2. Quiz bilgilerini girin
+3. Soruları ekleyin
+4. Quiz'i yayınlayın
+5. Sonuçları analiz edin
+
+### Admin Olarak
+1. Kullanıcıları yönetin
+2. Kategorileri düzenleyin
+3. Sistem ayarlarını yapılandırın
+4. Genel istatistikleri görüntüleyin
 
 ## API Dokümantasyonu
 
-Swagger UI üzerinden API dokümantasyonuna erişebilirsiniz:
-- Development ortamında: https://localhost:7001/swagger
-- HTTP üzerinden: http://localhost:5000/swagger
+### Kimlik Doğrulama
+```http
+POST /api/auth/login
+Content-Type: application/json
 
-## Proje Yapısı
-
-- `QuizApp.API`: API katmanı
-- `QuizApp.Application`: Uygulama katmanı (DTOs, Interfaces, Services)
-- `QuizApp.Domain`: Domain katmanı (Entities, Enums)
-- `QuizApp.Infrastructure`: Altyapı katmanı (DbContext, Migrations, Handlers)
-- `QuizApp.Tests`: Test projesi
-
-## Geliştirme
-
-1. Yeni bir branch oluşturun:
-```bash
-git checkout -b feature/yeni-ozellik
+{
+  "email": "string",
+  "password": "string"
+}
 ```
 
-2. Değişikliklerinizi commit edin:
-```bash
-git add .
-git commit -m "Yeni özellik eklendi"
+### Quiz İşlemleri
+```http
+GET /api/quizzes
+GET /api/quizzes/{id}
+POST /api/quizzes
+PUT /api/quizzes/{id}
+DELETE /api/quizzes/{id}
 ```
 
-3. Branch'inizi push edin:
-```bash
-git push origin feature/yeni-ozellik
+### Soru İşlemleri
+```http
+GET /api/quizzes/{id}/questions
+POST /api/quizzes/{id}/questions
+PUT /api/quizzes/{id}/questions/{questionId}
+DELETE /api/quizzes/{id}/questions/{questionId}
 ```
+
+### Sonuç İşlemleri
+```http
+POST /api/quizzes/{id}/submit
+GET /api/quizzes/{id}/results
+GET /api/quizzes/{id}/stats
+```
+
+## Katkıda Bulunma
+
+1. Bu depoyu fork edin
+2. Yeni bir branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Değişikliklerinizi commit edin (`git commit -m 'Add some amazing feature'`)
+4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
+5. Bir Pull Request oluşturun
 
 ## Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır.
+Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
+
+## İletişim
+
+Proje Sahibi - [@github](https://github.com/yourusername)
+
+Proje Linki: [https://github.com/yourusername/quiz-app](https://github.com/yourusername/quiz-app)
