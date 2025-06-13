@@ -1,5 +1,3 @@
-using System;
-using QuizApp.Domain.Entities.Identity;
 using QuizApp.Application.DTOs.Requests.Role;
 using QuizApp.Application.DTOs.Responses.Role;
 
@@ -19,4 +17,4 @@ public interface IRoleService
     Task<List<string>> GetUserRolesAsync(string userId);
     Task<List<string>> GetRoleClaimsAsync(string roleName);
     Task<RoleResponse> AssignClaimsToRoleAsync(string roleName, IEnumerable<string> claims);
-} 
+}

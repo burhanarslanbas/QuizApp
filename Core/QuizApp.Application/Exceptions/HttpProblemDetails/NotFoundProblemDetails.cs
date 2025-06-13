@@ -12,4 +12,4 @@ public class NotFoundProblemDetails : ProblemDetails
         Status = StatusCodes.Status404NotFound;
         Type = "https://quizapp.com/props/not-found";
     }
-} 
+}

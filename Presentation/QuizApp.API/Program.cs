@@ -1,29 +1,35 @@
 ﻿using FluentValidation;
 using Microsoft.OpenApi.Models;
 using QuizApp.Application;
-using QuizApp.Application.Options;
 using QuizApp.Application.Validators.Role;
 using QuizApp.Infrastructure;
 using QuizApp.Infrastructure.Middleware;
 using QuizApp.Persistence;
+using QuizApp.Persistence.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// CORS Configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowViteDevServer",
+        builder =>
+        {
+            builder
+                .WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
+});
 
 // Service Registrations
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 
-// Configure TokenOptions
-builder.Services.Configure<TokenOptions>(builder.Configuration.GetSection("Token"));
-
-// Globalization configuration
-builder.Services.Configure<RequestLocalizationOptions>(options =>
-{
-    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(System.Globalization.CultureInfo.InvariantCulture);
-    options.SupportedCultures = new List<System.Globalization.CultureInfo> { System.Globalization.CultureInfo.InvariantCulture };
-    options.SupportedUICultures = new List<System.Globalization.CultureInfo> { System.Globalization.CultureInfo.InvariantCulture };
-});
+// Add RoleSeeder
+//builder.Services.AddScoped<RoleSeeder>();
 
 // Core Services
 builder.Services.AddControllers()
@@ -37,30 +43,18 @@ builder.Services.AddMemoryCache();
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRoleRequestValidator>();
 
-// CORS yapılandırması
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("QuizAppPolicy", policy =>
-    {
-        policy
-            .WithOrigins("https://localhost:5173", "http://localhost:5173") // React uygulamasının varsayılan adresi (Vite)
-            .AllowAnyHeader() // Herhangi bir header'a izin ver
-            .AllowAnyMethod() // Herhangi bir HTTP metoduna izin ver
-            .AllowCredentials(); // Cookie ve Authorization header'ları için gerekli
-    });
-});
-
-// Swagger yapılandırması
+// Swagger/OpenAPI yapılandırması
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "QuizApp API", Version = "v1" });
 
+    // JWT Authentication için Swagger yapılandırması
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
+        Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
 
@@ -82,27 +76,26 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Middleware Pipeline
+// Seed Roles
+//using (var scope = app.Services.CreateScope())
+//{
+//    var roleSeeder = scope.ServiceProvider.GetRequiredService<RoleSeeder>();
+//    await roleSeeder.SeedAsync();
+//}
+
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseRequestLocalization();
-
-// CORS middleware'i authentication'dan önce olmalı
-app.UseCors("QuizAppPolicy");
-
+// Middleware sıralaması önemli
 app.UseHttpsRedirection();
-
-// Add exception handling middleware (should be before authentication/authorization)
-app.UseMiddleware<ExceptionMiddleware>();
-
-// Authentication ve Authorization sıralaması
+app.UseCors("AllowViteDevServer");
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseMiddleware<ErrorHandlingMiddleware>(); // Global hata yönetimi
 app.MapControllers();
 
 app.Run();

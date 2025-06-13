@@ -1,28 +1,25 @@
 using AutoMapper;
 using QuizApp.Application.DTOs.Requests.UserAnswer;
 using QuizApp.Application.DTOs.Responses.UserAnswer;
-using QuizApp.Domain.Entities;
 
-namespace QuizApp.Application.MappingProfiles;
+namespace QuizApp.Application.MappingProfiles.UserAnswer;
 
 public class UserAnswerProfile : Profile
 {
     public UserAnswerProfile()
     {
-        // Basic CRUD mappings
-        CreateMap<UserAnswer, UserAnswerDTO>().ReverseMap();
-        CreateMap<UserAnswer, CreateUserAnswerRequest>().ReverseMap();
-        CreateMap<UserAnswer, UpdateUserAnswerRequest>().ReverseMap();
-        CreateMap<UserAnswer, DeleteUserAnswerRequest>().ReverseMap();
-        CreateMap<UserAnswer, GetUserAnswerByIdRequest>().ReverseMap();
+        // Request to Entity
+        CreateMap<CreateUserAnswerRequest, Domain.Entities.UserAnswer>();
+        CreateMap<UpdateUserAnswerRequest, Domain.Entities.UserAnswer>();
+        CreateMap<DeleteUserAnswerRequest, Domain.Entities.UserAnswer>();
+        CreateMap<GetUserAnswerByIdRequest, Domain.Entities.UserAnswer>();
+        CreateMap<GetUserAnswersRequest, Domain.Entities.UserAnswer>();
+        CreateMap<GetUserAnswersByQuizResultRequest, Domain.Entities.UserAnswer>();
 
-        // Detail response mapping
-        CreateMap<UserAnswer, UserAnswerDetailResponse>()
-            .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.Question != null ? src.Question.QuestionText : null))
-            .ForMember(dest => dest.SelectedOptionText, opt => opt.MapFrom(src => src.Option != null ? src.Option.OptionText : null))
-            .ForMember(dest => dest.CorrectOptionText, opt => opt.MapFrom(src => 
-                src.Question != null && src.Question.Options != null ? 
-                (src.Question.Options.FirstOrDefault(o => o.IsCorrect) != null ? 
-                    src.Question.Options.FirstOrDefault(o => o.IsCorrect).OptionText : null) : null));
+        // Bulk Operations
+        CreateMap<DeleteRangeUserAnswerRequest, Domain.Entities.UserAnswer>();
+
+        // Entity to Response
+        CreateMap<Domain.Entities.UserAnswer, UserAnswerResponse>();
     }
 }

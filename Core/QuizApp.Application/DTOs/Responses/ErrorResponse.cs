@@ -1,9 +1,8 @@
-namespace QuizApp.Application.DTOs.Responses
+namespace QuizApp.Application.DTOs.Responses;
+
+public class ErrorResponse
 {
-    public class ErrorResponse
-    {
-        public string Message { get; set; }
-        public int StatusCode { get; set; }
-        public string? Details { get; set; }
-    }
-} 
+    public bool Success { get; set; } = false;
+    public string Message { get; set; } = string.Empty;
+    public List<string> Errors { get; set; } = new();
+}

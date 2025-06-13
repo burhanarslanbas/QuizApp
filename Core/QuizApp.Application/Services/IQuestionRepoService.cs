@@ -1,16 +1,15 @@
 using QuizApp.Application.DTOs.Requests.QuestionRepo;
-using QuizApp.Application.DTOs.Responses.Question;
-using QuizApp.Domain.Entities;
+using QuizApp.Application.DTOs.Responses.QuestionRepo;
 
 namespace QuizApp.Application.Services;
 
 public interface IQuestionRepoService
 {
-    Task<QuestionDetailResponse> GetByIdAsync(GetQuestionRepoByIdRequest request);
-    List<QuestionDetailResponse> GetAll(GetQuestionReposRequest request);
-    List<QuestionDetailResponse> GetByCategory(GetQuestionReposByCategoryRequest request);
-    Task<QuestionDetailResponse> CreateAsync(CreateQuestionRepoRequest request);
-    QuestionDetailResponse Update(UpdateQuestionRepoRequest request);
+    Task<QuestionRepoResponse> CreateAsync(CreateQuestionRepoRequest request);
+    Task<QuestionRepoResponse> UpdateAsync(UpdateQuestionRepoRequest request);
     Task DeleteAsync(DeleteQuestionRepoRequest request);
-    bool DeleteRange(DeleteRangeQuestionRepoRequest request);
-} 
+    Task<QuestionRepoResponse> GetByIdAsync(GetQuestionRepoByIdRequest request);
+    Task<IEnumerable<QuestionRepoResponse>> GetAllAsync(GetQuestionReposRequest request);
+    Task<IEnumerable<QuestionRepoResponse>> GetByUserAsync(GetQuestionReposByUserRequest request);
+    Task DeleteRangeAsync(DeleteRangeQuestionRepoRequest request);
+}

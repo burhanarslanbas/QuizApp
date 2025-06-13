@@ -8,29 +8,65 @@ namespace QuizApp.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<QuestionRepo> builder)
         {
-            builder.HasKey(e => e.Id);
-            builder.Property(e => e.Name).HasColumnName("Name").IsRequired().HasMaxLength(100);
-            builder.Property(e => e.Description).HasColumnName("Description").HasMaxLength(500);
-            builder.Property(e => e.IsActive).HasColumnName("IsActive").IsRequired().HasDefaultValue(true);
-            builder.Property(e => e.MaxQuestions).HasColumnName("MaxQuestions").IsRequired().HasDefaultValue(10);
-            builder.Property(e => e.IsPublic).HasColumnName("IsPublic").IsRequired().HasDefaultValue(false);
-            builder.Property(e => e.QuestionCount).HasColumnName("QuestionCount").IsRequired().HasDefaultValue(0);
-            builder.Property(e => e.CreatedDate).HasColumnName("CreatedDate").IsRequired();
-            builder.Property(e => e.UpdatedDate).HasColumnName("UpdatedDate");
+            builder.HasKey(qr => qr.Id);
 
-            // Required foreign keys
-            builder.Property(e => e.CreatorId).IsRequired();
+            // BaseEntity alanları
+            builder.Property(qr => qr.Id)
+                .HasColumnName("Id")
+                .IsRequired();
 
-            // Relationships
-            builder.HasOne(e => e.Creator)
+            builder.Property(qr => qr.CreatedDate)
+                .HasColumnName("CreatedDate")
+                .IsRequired();
+
+            builder.Property(qr => qr.UpdatedDate)
+                .HasColumnName("UpdatedDate")
+                .IsRequired(false);
+
+            builder.Property(qr => qr.DeletedDate)
+                .HasColumnName("DeletedDate")
+                .IsRequired(false);
+
+            // Entity özel alanları
+            builder.Property(qr => qr.CreatorId)
+                .HasColumnName("CreatorId")
+                .IsRequired();
+
+            builder.Property(qr => qr.Name)
+                .HasColumnName("Name")
+                .IsRequired()
+                .HasMaxLength(100);
+
+            builder.Property(qr => qr.Description)
+                .HasColumnName("Description")
+                .IsRequired(false)
+                .HasMaxLength(500);
+
+            builder.Property(qr => qr.IsActive)
+                .HasColumnName("IsActive")
+                .IsRequired()
+                .HasDefaultValue(true);
+
+            builder.Property(qr => qr.MaxQuestions)
+                .HasColumnName("MaxQuestions")
+                .IsRequired()
+                .HasDefaultValue(50);
+
+            builder.Property(qr => qr.IsPublic)
+                .HasColumnName("IsPublic")
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            // İlişkiler
+            builder.HasOne(qr => qr.Creator)
                 .WithMany()
-                .HasForeignKey(e => e.CreatorId)
+                .HasForeignKey(qr => qr.CreatorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(e => e.Questions)
-                .WithOne(e => e.QuestionRepo)
-                .HasForeignKey(e => e.QuestionRepoId)
+            builder.HasMany(qr => qr.Questions)
+                .WithOne(qr => qr.QuestionRepo)
+                .HasForeignKey(qr => qr.QuestionRepoId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
-} 
+}

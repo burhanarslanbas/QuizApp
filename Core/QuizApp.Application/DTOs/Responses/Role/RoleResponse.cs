@@ -1,5 +1,3 @@
-using System;
-
 namespace QuizApp.Application.DTOs.Responses.Role;
 
 public class RoleResponse
@@ -17,4 +15,4 @@ public class RoleErrorResponse : RoleResponse
 {
     public string Message { get; set; } = string.Empty;
     public List<string> Errors { get; set; } = new();
-} 
+}

@@ -1,11 +1,12 @@
-using QuizApp.Application.Repositories;
-using QuizApp.Domain.Entities;
+using QuizApp.Application.Repositories.QuestionRepo;
 using QuizApp.Persistence.Contexts;
+using QuizApp.Persistence.Repositories.Common;
 
-namespace QuizApp.Persistence.Repositories
+namespace QuizApp.Persistence.Repositories.QuestionRepo;
+
+public class QuestionRepoWriteRepository : WriteRepository<Domain.Entities.QuestionRepo>, IQuestionRepoWriteRepository
 {
-    public class QuestionRepoWriteRepository : WriteRepository<QuestionRepo>, IQuestionRepoWriteRepository
+    public QuestionRepoWriteRepository(QuizAppDbContext context) : base(context)
     {
-        public QuestionRepoWriteRepository(QuizAppDbContext context) : base(context) { }
     }
 }

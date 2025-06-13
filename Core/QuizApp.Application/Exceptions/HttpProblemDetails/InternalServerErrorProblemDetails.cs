@@ -12,4 +12,4 @@ public class InternalServerErrorProblemDetails : ProblemDetails
         Status = StatusCodes.Status500InternalServerError;
         Type = "https://quizapp.com/props/internal-server-error";
     }
-} 
+}

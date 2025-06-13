@@ -5,12 +5,14 @@ namespace QuizApp.Application.Services;
 
 public interface IQuizResultService
 {
-    Task<bool> CreateAsync(CreateQuizResultRequest request);
-    Task<List<QuizResultDTO>> CreateRangeAsync(List<CreateQuizResultRequest> requests);
-    Task<bool> DeleteAsync(Guid id);
-    bool DeleteRange(List<Guid> ids);
-    List<QuizResultDTO> GetAll();
-    Task<QuizResultDTO> GetByIdAsync(Guid id);
-    bool Update(UpdateQuizResultRequest request);
-    List<QuizResultDTO> GetByQuizIdAndOwner(Guid quizId, Guid ownerId);
-} 
+    Task<QuizResultResponse> CreateAsync(CreateQuizResultRequest request);
+    Task<QuizResultResponse> UpdateAsync(UpdateQuizResultRequest request);
+    Task DeleteAsync(DeleteQuizResultRequest request);
+    Task<QuizResultResponse> GetByIdAsync(GetQuizResultByIdRequest request);
+    Task<IEnumerable<QuizResultResponse>> GetAllAsync(GetQuizResultsRequest request);
+    Task<IEnumerable<QuizResultResponse>> GetByUserAsync(GetQuizResultsByUserRequest request);
+    Task<IEnumerable<QuizResultResponse>> GetByQuizAsync(GetQuizResultsByQuizRequest request);
+    Task<IEnumerable<QuizResultResponse>> CreateRangeAsync(CreateRangeQuizResultRequest request);
+    Task<IEnumerable<QuizResultResponse>> UpdateRangeAsync(UpdateRangeQuizResultRequest request);
+    Task DeleteRangeAsync(DeleteRangeQuizResultRequest request);
+}

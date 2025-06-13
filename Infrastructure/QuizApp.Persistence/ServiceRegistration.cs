@@ -1,11 +1,24 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using QuizApp.Application.Repositories;
-using QuizApp.Domain.Entities.Identity;
+using QuizApp.Application.Repositories.Category;
+using QuizApp.Application.Repositories.Option;
+using QuizApp.Application.Repositories.Question;
+using QuizApp.Application.Repositories.QuestionRepo;
+using QuizApp.Application.Repositories.Quiz;
+using QuizApp.Application.Repositories.QuizQuestion;
+using QuizApp.Application.Repositories.QuizResult;
+using QuizApp.Application.Repositories.UserAnswer;
 using QuizApp.Persistence.Contexts;
-using QuizApp.Persistence.Repositories;
+using QuizApp.Persistence.Interceptors;
+using QuizApp.Persistence.Repositories.Category;
+using QuizApp.Persistence.Repositories.Option;
+using QuizApp.Persistence.Repositories.Question;
+using QuizApp.Persistence.Repositories.QuestionRepo;
+using QuizApp.Persistence.Repositories.Quiz;
+using QuizApp.Persistence.Repositories.QuizQuestion;
+using QuizApp.Persistence.Repositories.QuizResult;
+using QuizApp.Persistence.Repositories.UserAnswer;
 
 namespace QuizApp.Persistence
 {
@@ -13,62 +26,50 @@ namespace QuizApp.Persistence
     {
         public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
         {
+            // Interceptor'ı singleton olarak kaydet
+            services.AddSingleton<BaseEntitySaveChangesInterceptor>();
+
             // DbContext Configuration
-services.AddDbContext<QuizAppDbContext>(options =>
-{
-    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), 
-        sqlServerOptionsAction: sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorNumbersToAdd: null);
-        });
-});
-
-            // Identity Configuration
-            services.AddIdentity<AppUser, AppRole>(options =>
+            services.AddDbContext<QuizAppDbContext>(options =>
             {
-                // Password settings
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequiredLength = 3;
-                options.Password.RequiredUniqueChars = 1;
+                var connectionString = configuration.GetSection("ConnectionStrings").GetValue<string>(
+                    configuration.GetValue<string>("ASPNETCORE_ENVIRONMENT") == "Development"
+                        ? "LocalConnection"
+                        : "AzureConnection");
 
-                // Lockout settings
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                options.Lockout.MaxFailedAccessAttempts = 5;
-                options.Lockout.AllowedForNewUsers = true;
+                options.UseSqlServer(connectionString,
+                    sqlOptions => sqlOptions.EnableRetryOnFailure());
+            });
 
-                // User settings
-                options.User.AllowedUserNameCharacters =
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-                options.User.RequireUniqueEmail = true;
-            })
-            .AddEntityFrameworkStores<QuizAppDbContext>()
-            .AddDefaultTokenProviders();
-
-            // Repositories Configuration
-            services.AddScoped<ICategoryReadRepository, CategoryReadRepository>();
-            services.AddScoped<ICategoryWriteRepository, CategoryWriteRepository>();
-
-            services.AddScoped<IOptionReadRepository, OptionReadRepository>();
-            services.AddScoped<IOptionWriteRepository, OptionWriteRepository>();
-
-            services.AddScoped<IQuestionReadRepository, QuestionReadRepository>();
-            services.AddScoped<IQuestionWriteRepository, QuestionWriteRepository>();
-
-            services.AddScoped<IQuestionRepoReadRepository, QuestionRepoReadRepository>();
-            services.AddScoped<IQuestionRepoWriteRepository, QuestionRepoWriteRepository>();
-
+            // Quiz Repositories
             services.AddScoped<IQuizReadRepository, QuizReadRepository>();
             services.AddScoped<IQuizWriteRepository, QuizWriteRepository>();
 
+            // Question Repositories
+            services.AddScoped<IQuestionReadRepository, QuestionReadRepository>();
+            services.AddScoped<IQuestionWriteRepository, QuestionWriteRepository>();
+
+            // Option Repositories
+            services.AddScoped<IOptionReadRepository, OptionReadRepository>();
+            services.AddScoped<IOptionWriteRepository, OptionWriteRepository>();
+
+            // Category Repositories
+            services.AddScoped<ICategoryReadRepository, CategoryReadRepository>();
+            services.AddScoped<ICategoryWriteRepository, CategoryWriteRepository>();
+
+            // QuizQuestion Repositories
+            services.AddScoped<IQuizQuestionReadRepository, QuizQuestionReadRepository>();
+            services.AddScoped<IQuizQuestionWriteRepository, QuizQuestionWriteRepository>();
+
+            // QuestionRepo Repositories
+            services.AddScoped<IQuestionRepoReadRepository, QuestionRepoReadRepository>();
+            services.AddScoped<IQuestionRepoWriteRepository, QuestionRepoWriteRepository>();
+
+            // QuizResult Repositories
             services.AddScoped<IQuizResultReadRepository, QuizResultReadRepository>();
             services.AddScoped<IQuizResultWriteRepository, QuizResultWriteRepository>();
 
+            // UserAnswer Repositories
             services.AddScoped<IUserAnswerReadRepository, UserAnswerReadRepository>();
             services.AddScoped<IUserAnswerWriteRepository, UserAnswerWriteRepository>();
         }

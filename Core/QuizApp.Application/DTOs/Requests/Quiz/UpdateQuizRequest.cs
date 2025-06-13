@@ -1,3 +1,5 @@
+using QuizApp.Application.DTOs.Requests.QuizQuestion;
+
 namespace QuizApp.Application.DTOs.Requests.Quiz;
 
 public record UpdateQuizRequest
@@ -11,4 +13,5 @@ public record UpdateQuizRequest
     public int Duration { get; set; }
     public int MaxAttempts { get; set; } = 1;
     public bool IsActive { get; set; } = true;
-} 
+    public List<UpdateQuizQuestionRequest> Questions { get; set; }
+}

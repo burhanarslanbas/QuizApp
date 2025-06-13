@@ -5,11 +5,10 @@ namespace QuizApp.Application.Services;
 
 public interface IOptionService
 {
-    Task<bool> CreateAsync(CreateOptionRequest request, Guid userId);
-    Task<List<OptionDTO>> CreateRangeAsync(List<CreateOptionRequest> requests, Guid userId);
-    Task<bool> DeleteAsync(Guid id, Guid userId);
-    Task<bool> DeleteRange(List<Guid> ids, Guid userId);
-    List<OptionDTO> GetAll();
-    Task<OptionDTO> GetByIdAsync(Guid id);
-    Task<bool> Update(UpdateOptionRequest request, Guid userId);
-} 
+    Task<OptionResponse> CreateAsync(CreateOptionRequest request);
+    Task<OptionResponse> UpdateAsync(UpdateOptionRequest request);
+    Task DeleteAsync(DeleteOptionRequest request);
+    Task<OptionResponse> GetByIdAsync(GetOptionByIdRequest request);
+    Task<IEnumerable<OptionResponse>> GetAllAsync(GetOptionsRequest request);
+    Task<IEnumerable<OptionResponse>> GetByQuestionAsync(GetOptionsByQuestionRequest request);
+}

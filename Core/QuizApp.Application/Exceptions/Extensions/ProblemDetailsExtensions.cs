@@ -1,5 +1,5 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace QuizApp.Application.Exceptions.Extensions;
 
@@ -9,4 +9,4 @@ public static class ProblemDetailsExtensions
     {
         return JsonSerializer.Serialize(details);
     }
-} 
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800px" height="600px" viewBox="0 0 800 600" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background Circle -->
+        <circle fill="#FFFFFF" opacity="0.1" cx="400" cy="300" r="250"/>
+        
+        <!-- Quiz Paper -->
+        <rect fill="#FFFFFF" x="250" y="150" width="300" height="300" rx="20"/>
+        <rect fill="#E3F2FD" x="270" y="180" width="260" height="30" rx="5"/>
+        <rect fill="#E3F2FD" x="270" y="230" width="260" height="30" rx="5"/>
+        <rect fill="#E3F2FD" x="270" y="280" width="260" height="30" rx="5"/>
+        <rect fill="#E3F2FD" x="270" y="330" width="260" height="30" rx="5"/>
+        
+        <!-- Checkmark -->
+        <path d="M350,400 L380,430 L420,370" stroke="#4CAF50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        
+        <!-- Decorative Elements -->
+        <circle fill="#2196F3" opacity="0.2" cx="200" cy="200" r="50"/>
+        <circle fill="#2196F3" opacity="0.2" cx="600" cy="400" r="50"/>
+        <circle fill="#2196F3" opacity="0.2" cx="500" cy="150" r="30"/>
+        <circle fill="#2196F3" opacity="0.2" cx="300" cy="450" r="30"/>
+    </g>
+</svg> 

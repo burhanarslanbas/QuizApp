@@ -1,6 +1,8 @@
-using QuizApp.Domain.Entities;
+namespace QuizApp.Application.Repositories.Quiz;
 
-namespace QuizApp.Application.Repositories;
-public interface IQuizReadRepository : IReadRepository<Quiz>
+public interface IQuizReadRepository : IReadRepository<Domain.Entities.Quiz>
 {
+    IQueryable<Domain.Entities.Quiz> GetAllByCreator(Guid creatorId);
+    Task<Domain.Entities.Quiz> GetByIdWithQuestionsAsync(Guid id);
+    Task<List<Domain.Entities.QuizQuestion>> GetQuizQuestionsAsync(Guid quizId);
 }

@@ -8,31 +8,62 @@ namespace QuizApp.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<QuizResult> builder)
         {
-            builder.HasKey(e => e.Id);
-            builder.Property(e => e.Score).HasColumnName("Score").IsRequired().HasDefaultValue(0);
-            builder.Property(e => e.IsCompleted).HasColumnName("IsCompleted").IsRequired().HasDefaultValue(false);
-            builder.Property(e => e.CreatedDate).HasColumnName("CreatedDate").IsRequired();
-            builder.Property(e => e.UpdatedDate).HasColumnName("UpdatedDate");
+            builder.HasKey(qr => qr.Id);
 
-            // Required foreign keys
-            builder.Property(e => e.QuizId).IsRequired();
-            builder.Property(e => e.StudentId).IsRequired();
+            // BaseEntity alanları
+            builder.Property(qr => qr.Id)
+                .HasColumnName("Id")
+                .IsRequired();
 
-            // Relationships
-            builder.HasOne(e => e.Quiz)
-                .WithMany(e => e.QuizResults)
-                .HasForeignKey(e => e.QuizId)
+            builder.Property(qr => qr.CreatedDate)
+                .HasColumnName("CreatedDate")
+                .IsRequired();
+
+            builder.Property(qr => qr.UpdatedDate)
+                .HasColumnName("UpdatedDate")
+                .IsRequired(false);
+
+            builder.Property(qr => qr.DeletedDate)
+                .HasColumnName("DeletedDate")
+                .IsRequired(false);
+
+            // Entity özel alanları
+            builder.Property(qr => qr.QuizId)
+                .HasColumnName("QuizId")
+                .IsRequired();
+
+            builder.Property(qr => qr.UserId)
+                .HasColumnName("UserId")
+                .IsRequired();
+
+            builder.Property(qr => qr.Score)
+                .HasColumnName("Score")
+                .IsRequired();
+
+            builder.Property(qr => qr.EndTime)
+                .HasColumnName("EndTime")
+                .IsRequired(false);
+
+            builder.Property(qr => qr.IsCompleted)
+                .HasColumnName("IsCompleted")
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            // İlişkiler
+            builder.HasOne(qr => qr.Quiz)
+                .WithMany(q => q.QuizResults)
+                .HasForeignKey(qr => qr.QuizId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(e => e.Student)
-                .WithMany(e => e.QuizResults)
-                .HasForeignKey(e => e.StudentId)
+            builder.HasOne(qr => qr.User)
+                .WithMany()
+                .HasForeignKey(qr => qr.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(e => e.StudentAnswers)
-                .WithOne(e => e.QuizResult)
-                .HasForeignKey(e => e.QuizResultId)
+            builder.HasMany(qr => qr.UserAnswers)
+                .WithOne(ua => ua.QuizResult)
+                .HasForeignKey(ua => ua.QuizResultId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
-} 
+}

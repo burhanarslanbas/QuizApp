@@ -1,13 +1,8 @@
-using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using QuizApp.Application.Exceptions.Extensions;
 using QuizApp.Application.Exceptions.HttpProblemDetails;
-using QuizApp.Application.Exceptions.Types;
 using System.Net;
-using System.Text.Json;
 
 namespace QuizApp.Application.Exceptions.Handlers;
 
@@ -76,4 +71,4 @@ public class HttpExceptionHandler : ExceptionHandler
         string details = new InternalServerErrorProblemDetails(exception.Message).AsJson();
         return Response.WriteAsync(details);
     }
-} 
+}

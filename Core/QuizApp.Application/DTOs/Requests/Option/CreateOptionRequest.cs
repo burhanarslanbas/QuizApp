@@ -2,7 +2,8 @@ namespace QuizApp.Application.DTOs.Requests.Option;
 
 public record CreateOptionRequest
 {
-    public string OptionText { get; set; } = string.Empty;
-    public bool IsCorrect { get; set; }
-    public Guid QuestionId { get; set; }
-} 
+    public Guid? QuestionId { get; set; }
+    public string OptionText { get; set; } = default!;
+    public bool IsCorrect { get; set; } = false;
+    public byte OrderIndex { get; set; } = 0;
+}

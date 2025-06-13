@@ -5,12 +5,12 @@ namespace QuizApp.Application.Services;
 
 public interface ICategoryService
 {
-    Task<CategoryDetailResponse> GetByIdAsync(GetCategoryByIdRequest request);
-    List<CategoryDetailResponse> GetAll(GetCategoriesRequest request);
-    Task<CategoryDetailResponse> CreateAsync(CreateCategoryRequest request);
-    Task<List<CategoryDetailResponse>> CreateRange(CreateRangeCategoryRequest request);
-    CategoryDetailResponse Update(UpdateCategoryRequest request);
-    List<CategoryDetailResponse> UpdateRange(UpdateRangeCategoryRequest request);
+    Task<CategoryResponse> CreateAsync(CreateCategoryRequest request);
+    Task<CategoryResponse> UpdateAsync(UpdateCategoryRequest request);
     Task DeleteAsync(DeleteCategoryRequest request);
-    bool DeleteRange(DeleteRangeCategoryRequest request);
+    Task<CategoryResponse> GetByIdAsync(GetCategoryByIdRequest request);
+    Task<IEnumerable<CategoryResponse>> GetAllAsync(GetCategoriesRequest request);
+    Task<IEnumerable<CategoryResponse>> CreateRangeAsync(CreateRangeCategoryRequest request);
+    Task<IEnumerable<CategoryResponse>> UpdateRangeAsync(UpdateRangeCategoryRequest request);
+    Task DeleteRangeAsync(DeleteRangeCategoryRequest request);
 }

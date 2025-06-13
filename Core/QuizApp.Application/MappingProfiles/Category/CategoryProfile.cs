@@ -1,25 +1,26 @@
 ﻿using AutoMapper;
 using QuizApp.Application.DTOs.Requests.Category;
 using QuizApp.Application.DTOs.Responses.Category;
-using QuizApp.Domain.Entities;
 
-namespace QuizApp.Application.MappingProfiles;
+namespace QuizApp.Application.MappingProfiles.Category;
 
 public class CategoryProfile : Profile
 {
     public CategoryProfile()
     {
-        CreateMap<Category, CategoryDTO>().ReverseMap();
-        CreateMap<Category, CreateCategoryRequest>().ReverseMap();
-        CreateMap<Category, CreateRangeCategoryRequest>().ReverseMap();
-        CreateMap<Category, DeleteCategoryRequest>().ReverseMap();
-        CreateMap<Category, DeleteRangeCategoryRequest>().ReverseMap();
-        CreateMap<Category, UpdateCategoryRequest>().ReverseMap();
-        CreateMap<Category, UpdateRangeCategoryRequest>().ReverseMap();
-        CreateMap<Category, GetCategoryByIdRequest>().ReverseMap();
-        CreateMap<Category, GetCategoriesRequest>().ReverseMap();
-        CreateMap<Category, CategoryDetailResponse>()
-            .ForMember(dest => dest.Quizzes, opt => opt.MapFrom(src => src.Quizzes));
-        CreateMap<Quiz, QuizSummaryResponse>();
+        // Request to Entity
+        CreateMap<CreateCategoryRequest, Domain.Entities.Category>();
+        CreateMap<UpdateCategoryRequest, Domain.Entities.Category>();
+        CreateMap<DeleteCategoryRequest, Domain.Entities.Category>();
+        CreateMap<GetCategoryByIdRequest, Domain.Entities.Category>();
+        CreateMap<GetCategoriesRequest, Domain.Entities.Category>();
+        
+        // Bulk Operations
+        CreateMap<CreateRangeCategoryRequest, Domain.Entities.Category>();
+        CreateMap<UpdateRangeCategoryRequest, Domain.Entities.Category>();
+        CreateMap<DeleteRangeCategoryRequest, Domain.Entities.Category>();
+
+        // Entity to Response
+        CreateMap<Domain.Entities.Category, CategoryResponse>();
     }
 }

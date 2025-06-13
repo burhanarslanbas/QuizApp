@@ -26,4 +26,4 @@ public static class Claims
     public const string UpdateUser = "UpdateUser";
     public const string DeleteUser = "DeleteUser";
     public const string ViewUser = "ViewUser";
-} 
+}

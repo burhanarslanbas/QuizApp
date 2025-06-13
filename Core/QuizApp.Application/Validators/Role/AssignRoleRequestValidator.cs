@@ -18,4 +18,4 @@ public class AssignRoleRequestValidator : AbstractValidator<AssignRoleRequest>
                 .Any(f => f.GetValue(null)?.ToString() == role))
             .WithMessage("Invalid role name");
     }
-} 
+}

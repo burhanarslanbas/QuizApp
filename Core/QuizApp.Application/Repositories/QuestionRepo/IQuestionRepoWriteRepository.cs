@@ -1,6 +1,3 @@
-﻿using QuizApp.Domain.Entities;
+﻿namespace QuizApp.Application.Repositories.QuestionRepo;
 
-namespace QuizApp.Application.Repositories;
-public interface IQuestionRepoWriteRepository : IWriteRepository<QuestionRepo>
-{
-}
+public interface IQuestionRepoWriteRepository : IWriteRepository<Domain.Entities.QuestionRepo> { }

@@ -6,4 +6,4 @@ namespace QuizApp.Application.Exceptions
         {
         }
     }
-} 
+}

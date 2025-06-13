@@ -21,4 +21,4 @@ public class UpdateRoleRequestValidator : AbstractValidator<UpdateRoleRequest>
         RuleFor(x => x.Claims)
             .NotNull();
     }
-} 
+}

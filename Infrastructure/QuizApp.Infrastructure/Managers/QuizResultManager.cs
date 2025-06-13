@@ -1,11 +1,11 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using QuizApp.Application.DTOs.Requests.QuizResult;
 using QuizApp.Application.DTOs.Responses.QuizResult;
-using QuizApp.Application.Repositories;
+using QuizApp.Application.Exceptions;
+using QuizApp.Application.Repositories.QuizResult;
 using QuizApp.Application.Services;
 using QuizApp.Domain.Entities;
-using QuizApp.Application.Exceptions;
-using Microsoft.EntityFrameworkCore;
 
 namespace QuizApp.Infrastructure.Managers;
 
@@ -15,95 +15,127 @@ public class QuizResultManager : IQuizResultService
     private readonly IQuizResultWriteRepository _quizResultWriteRepository;
     private readonly IMapper _mapper;
 
-    public QuizResultManager(IQuizResultReadRepository quizResultReadRepository, IQuizResultWriteRepository quizResultWriteRepository, IMapper mapper)
+    public QuizResultManager(
+        IQuizResultReadRepository quizResultReadRepository,
+        IQuizResultWriteRepository quizResultWriteRepository,
+        IMapper mapper)
     {
         _quizResultReadRepository = quizResultReadRepository;
         _quizResultWriteRepository = quizResultWriteRepository;
         _mapper = mapper;
     }
 
-    public async Task<bool> CreateAsync(CreateQuizResultRequest request)
+    public async Task<QuizResultResponse> CreateAsync(CreateQuizResultRequest request)
     {
         var quizResult = _mapper.Map<QuizResult>(request);
-        var result = await _quizResultWriteRepository.AddAsync(quizResult);
-        if (!result)
-            throw new BusinessException("Failed to create quiz result");
-
-        return result;
+        await _quizResultWriteRepository.AddAsync(quizResult);
+        await _quizResultWriteRepository.SaveAsync();
+        return _mapper.Map<QuizResultResponse>(quizResult);
     }
 
-    public async Task<List<QuizResultDTO>> CreateRangeAsync(List<CreateQuizResultRequest> requests)
+    public async Task<QuizResultResponse> UpdateAsync(UpdateQuizResultRequest request)
     {
-        var quizResults = _mapper.Map<List<QuizResult>>(requests);
-        var result = await _quizResultWriteRepository.AddRangeAsync(quizResults);
-        if (!result)
-            throw new BusinessException("Failed to create quiz results");
+        var quizResult = await _quizResultReadRepository.GetByIdAsync(request.Id);
+        if (quizResult == null)
+            throw new NotFoundException($"Quiz result with ID {request.Id} not found");
 
-        return _mapper.Map<List<QuizResultDTO>>(quizResults);
+        _mapper.Map(request, quizResult);
+        _quizResultWriteRepository.Update(quizResult);
+        await _quizResultWriteRepository.SaveAsync();
+        return _mapper.Map<QuizResultResponse>(quizResult);
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task DeleteAsync(DeleteQuizResultRequest request)
     {
-        var result = await _quizResultWriteRepository.RemoveById(id);
-        if (!result)
-            throw new NotFoundException($"Quiz result with ID {id} not found.");
+        var quizResult = await _quizResultReadRepository.GetByIdAsync(request.Id);
+        if (quizResult == null)
+            throw new NotFoundException($"Quiz result with ID {request.Id} not found");
 
-        return result;
+        _quizResultWriteRepository.Remove(quizResult);
+        await _quizResultWriteRepository.SaveAsync();
     }
 
-    public bool DeleteRange(List<Guid> ids)
+    public async Task<QuizResultResponse> GetByIdAsync(GetQuizResultByIdRequest request)
     {
-        var quizResults = _quizResultReadRepository.GetWhere(x => ids.Contains(x.Id)).ToList();
-        if (!quizResults.Any())
-            throw new NotFoundException("No quiz results found with the provided IDs.");
+        var quizResult = await _quizResultReadRepository.GetAll()
+            .Include(qr => qr.Quiz)
+            .Include(qr => qr.User)
+            .FirstOrDefaultAsync(qr => qr.Id == request.Id);
 
-        var result = _quizResultWriteRepository.RemoveRange(quizResults);
-        if (!result)
-            throw new BusinessException("Failed to delete quiz results.");
+        if (quizResult == null)
+            throw new NotFoundException($"Quiz result with ID {request.Id} not found");
 
-        return result;
+        return _mapper.Map<QuizResultResponse>(quizResult);
     }
 
-    public List<QuizResultDTO> GetAll()
+    public async Task<IEnumerable<QuizResultResponse>> GetAllAsync(GetQuizResultsRequest request)
     {
-        var quizResults = _quizResultReadRepository.GetAll().ToList();
-        return _mapper.Map<List<QuizResultDTO>>(quizResults);
+        var query = _quizResultReadRepository.GetAll()
+            .Include(qr => qr.Quiz)
+            .Include(qr => qr.User)
+            .AsQueryable();
+
+        if (request.QuizId.HasValue)
+            query = query.Where(qr => qr.QuizId == request.QuizId);
+
+        if (request.UserId.HasValue)
+            query = query.Where(qr => qr.UserId == request.UserId);
+
+        var quizResults = await query.ToListAsync();
+        return _mapper.Map<IEnumerable<QuizResultResponse>>(quizResults);
     }
 
-    public async Task<QuizResultDTO> GetByIdAsync(Guid id)
+    public async Task<IEnumerable<QuizResultResponse>> GetByUserAsync(GetQuizResultsByUserRequest request)
     {
-        try
+        var quizResults = await _quizResultReadRepository.GetByUserIdAsync(request.UserId);
+        return _mapper.Map<IEnumerable<QuizResultResponse>>(quizResults);
+    }
+
+    public async Task<IEnumerable<QuizResultResponse>> GetByQuizAsync(GetQuizResultsByQuizRequest request)
+    {
+        var quizResults = await _quizResultReadRepository.GetByQuizIdAsync(request.QuizId);
+        return _mapper.Map<IEnumerable<QuizResultResponse>>(quizResults);
+    }
+
+    public async Task<IEnumerable<QuizResultResponse>> CreateRangeAsync(CreateRangeQuizResultRequest request)
+    {
+        var quizResults = _mapper.Map<IEnumerable<QuizResult>>(request.QuizResults);
+        await _quizResultWriteRepository.AddRangeAsync(quizResults.ToList());
+        await _quizResultWriteRepository.SaveAsync();
+        return _mapper.Map<IEnumerable<QuizResultResponse>>(quizResults);
+    }
+
+    public async Task<IEnumerable<QuizResultResponse>> UpdateRangeAsync(UpdateRangeQuizResultRequest request)
+    {
+        var quizResults = await _quizResultReadRepository.GetAll()
+            .Where(qr => request.Ids.Contains(qr.Id))
+            .ToListAsync();
+
+        if (quizResults.Count != request.Ids.Count)
+            throw new NotFoundException("One or more quiz results not found");
+
+        foreach (var quizResult in quizResults)
         {
-            var quizResult = await _quizResultReadRepository.GetByIdAsync(id);
-            return _mapper.Map<QuizResultDTO>(quizResult);
+            var updateRequest = request.QuizResults.FirstOrDefault(qr => qr.Id == quizResult.Id);
+            if (updateRequest != null)
+                _mapper.Map(updateRequest, quizResult);
         }
-        catch (InvalidOperationException)
-        {
-            throw new NotFoundException($"Quiz result with ID {id} not found.");
-        }
+
+        _quizResultWriteRepository.UpdateRange(quizResults);
+        await _quizResultWriteRepository.SaveAsync();
+        return _mapper.Map<IEnumerable<QuizResultResponse>>(quizResults);
     }
 
-    public bool Update(UpdateQuizResultRequest request)
+    public async Task DeleteRangeAsync(DeleteRangeQuizResultRequest request)
     {
-        try
-        {
-            var quizResult = _quizResultReadRepository.GetByIdAsync(request.Id).Result;
-            _mapper.Map(request, quizResult);
-            var result = _quizResultWriteRepository.Update(quizResult);
-            if (!result)
-                throw new BusinessException($"Failed to update quiz result with ID {request.Id}");
+        var quizResults = await _quizResultReadRepository.GetAll()
+            .Where(qr => request.Ids.Contains(qr.Id))
+            .ToListAsync();
 
-            return result;
-        }
-        catch (InvalidOperationException)
-        {
-            throw new NotFoundException($"Quiz result with ID {request.Id} not found.");
-        }
-    }
+        if (quizResults.Count != request.Ids.Count)
+            throw new NotFoundException("One or more quiz results not found");
 
-    public List<QuizResultDTO> GetByQuizIdAndOwner(Guid quizId, Guid ownerId)
-    {
-        var results = _quizResultReadRepository.GetWhere(qr => qr.QuizId == quizId && qr.Quiz.CreatorId == ownerId).ToList();
-        return _mapper.Map<List<QuizResultDTO>>(results);
+        _quizResultWriteRepository.RemoveRange(quizResults);
+        await _quizResultWriteRepository.SaveAsync();
     }
 }

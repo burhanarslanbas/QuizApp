@@ -30,4 +30,4 @@ public static class RoleClaims
         Claims.DeleteUser,
         Claims.ViewUser
     }.Concat(TeacherClaims).ToArray();
-} 
+}

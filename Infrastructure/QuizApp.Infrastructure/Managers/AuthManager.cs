@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using QuizApp.Application.DTOs.Requests.Auth;
@@ -15,17 +16,20 @@ public class AuthManager : IAuthService
     private readonly SignInManager<AppUser> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly Application.Options.TokenOptions _tokenOptions;
+    private readonly IMapper _mapper;
 
     public AuthManager(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
         ITokenService tokenService,
-        IOptions<Application.Options.TokenOptions> tokenOptions)
+        IOptions<Application.Options.TokenOptions> tokenOptions,
+        IMapper mapper)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _tokenOptions = tokenOptions.Value;
+        _mapper = mapper;
     }
 
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
@@ -41,7 +45,7 @@ public class AuthManager : IAuthService
 
         if (result.Succeeded)
         {
-            await _userManager.AddToRoleAsync(user, Roles.Student);
+            await _userManager.AddToRoleAsync(user, RoleConstants.Roles.Student);
 
             return new RegisterResponse
             {
@@ -60,30 +64,43 @@ public class AuthManager : IAuthService
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.UserNameOrEmail) ??
-                  await _userManager.FindByNameAsync(request.UserNameOrEmail);
-
+        var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
-            return new LoginErrorResponse { Message = "Invalid username or email" };
-        }
-
-        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
-
-        if (result.Succeeded)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            var token = _tokenService.CreateAccessToken(_tokenOptions.AccessTokenExpiration, user);
-
-            return new LoginSuccessResponse
+            return new LoginErrorResponse
             {
-                Success = true,
-                Message = "Login successful",
-                Token = token
+                Success = false,
+                Message = "Email not found",
+                Errors = new List<string> { "Email not found" }
             };
         }
 
-        return new LoginErrorResponse { Message = "Invalid password" };
+        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+        if (!result.Succeeded)
+        {
+            return new LoginErrorResponse
+            {
+                Success = false,
+                Message = "Incorrect password",
+                Errors = new List<string> { "Incorrect password" }
+            };
+        }
+
+        var token = await _tokenService.CreateAccessTokenAsync(user);
+        var roles = await _userManager.GetRolesAsync(user);
+        var claims = (await _userManager.GetClaimsAsync(user)).Select(c => c.Value).ToList();
+
+        var userDto = _mapper.Map<Application.DTOs.Responses.User.UserResponse>(user);
+        userDto.Roles = roles.ToList();
+        userDto.Claims = claims;
+
+        return new LoginSuccessResponse
+        {
+            Success = true,
+            Message = "Login successful",
+            Token = token,
+            User = userDto
+        };
     }
 
     public async Task<LoginResponse> RefreshTokenAsync(RefreshTokenRequest request)

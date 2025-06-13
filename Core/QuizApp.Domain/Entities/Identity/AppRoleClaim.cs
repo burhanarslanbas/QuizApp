@@ -8,4 +8,4 @@ public class AppRoleClaim : IdentityRoleClaim<Guid>
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime? LastModifiedDate { get; set; }
     public bool IsActive { get; set; } = true;
-} 
+}

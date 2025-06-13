@@ -3,16 +3,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using QuizApp.Domain.Entities;
-using QuizApp.Domain.Entities.Common;
 using QuizApp.Domain.Entities.Identity;
 using QuizApp.Persistence.Configurations;
+using QuizApp.Persistence.Interceptors;
 
 namespace QuizApp.Persistence.Contexts
 {
     public class QuizAppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     {
-        public QuizAppDbContext(DbContextOptions<QuizAppDbContext> options) : base(options)
-        { }
+        private readonly BaseEntitySaveChangesInterceptor _baseEntitySaveChangesInterceptor;
+
+        public QuizAppDbContext(
+            DbContextOptions<QuizAppDbContext> options,
+            BaseEntitySaveChangesInterceptor baseEntitySaveChangesInterceptor)
+            : base(options)
+        {
+            _baseEntitySaveChangesInterceptor = baseEntitySaveChangesInterceptor;
+        }
 
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
@@ -21,12 +28,19 @@ namespace QuizApp.Persistence.Contexts
         public DbSet<QuizResult> QuizResults { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<QuestionRepo> QuestionRepos { get; set; }
+        public DbSet<QuizQuestion> QuizQuestions { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.AddInterceptors(_baseEntitySaveChangesInterceptor);
+            base.OnConfiguring(optionsBuilder);
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            // Entity konfigürasyonlarını uygula
-            // builder.ApplyConfiguration(new AppUserConfiguration());
+
+            // Entity Configurations
             builder.ApplyConfiguration(new QuizConfiguration());
             builder.ApplyConfiguration(new QuestionConfiguration());
             builder.ApplyConfiguration(new OptionConfiguration());
@@ -34,28 +48,8 @@ namespace QuizApp.Persistence.Contexts
             builder.ApplyConfiguration(new UserAnswerConfiguration());
             builder.ApplyConfiguration(new CategoryConfiguration());
             builder.ApplyConfiguration(new QuestionRepoConfiguration());
-        }
-
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            // ChangeTracker : Entityler üzerinden yapılan değişikliklerin ya da yeni eklenen verinin yakalanmasını sağlayan propertydir.
-            // Update operasyonlarında Track edilen verileri yakalayıp elde etmemizi sağlar.
-
-            var models = ChangeTracker.Entries<BaseEntity>();
-
-            foreach (var model in models)
-            {
-                // Buradaki _ ifadesi discard edilen bir değişkendir. Yani bu değişkeni kullanmayacağız.
-                _ = model.State switch
-                {
-                    EntityState.Added => model.Entity.CreatedDate = DateTime.UtcNow,
-                    EntityState.Modified => model.Entity.UpdatedDate = DateTime.UtcNow,
-                    EntityState.Deleted => model.Entity.DeletedDate = DateTime.UtcNow,
-                    _ => DateTime.UtcNow
-                };
-            }
-
-            return await base.SaveChangesAsync(cancellationToken);
+            builder.ApplyConfiguration(new QuizQuestionConfiguration());
+            builder.ApplyConfiguration(new UserConfiguration());
         }
     }
 
@@ -64,10 +58,8 @@ namespace QuizApp.Persistence.Contexts
         public QuizAppDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<QuizAppDbContext>();
-            
-            // Varsayılan olarak Development
+
             var environment = "Development";
-            // Komut satırı argümanlarından environment'ı bul
             for (int i = 0; i < args.Length - 1; i++)
             {
                 if (args[i] == "--environment" && !string.IsNullOrEmpty(args[i + 1]))
@@ -83,10 +75,15 @@ namespace QuizApp.Persistence.Contexts
                 .AddJsonFile($"appsettings.{environment}.json", optional: true)
                 .Build();
 
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+            var connectionString = environment == "Development"
+                ? configuration.GetConnectionString("LocalConnection")
+                : configuration.GetConnectionString("AzureConnection");
+
+            optionsBuilder.UseSqlServer(connectionString,
                 options => options.EnableRetryOnFailure());
 
-            return new QuizAppDbContext(optionsBuilder.Options);
+            var interceptor = new BaseEntitySaveChangesInterceptor();
+            return new QuizAppDbContext(optionsBuilder.Options, interceptor);
         }
     }
 }

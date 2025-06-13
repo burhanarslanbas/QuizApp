@@ -129,17 +129,18 @@ namespace QuizApp.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedDate");
 
                     b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("Description");
@@ -232,7 +233,9 @@ namespace QuizApp.Persistence.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("FullName");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -284,14 +287,16 @@ namespace QuizApp.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedDate");
 
                     b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
 
                     b.Property<bool>("IsCorrect")
                         .ValueGeneratedOnAdd()
@@ -306,11 +311,14 @@ namespace QuizApp.Persistence.Migrations
                         .HasColumnName("OptionText");
 
                     b.Property<byte>("OrderIndex")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0)
                         .HasColumnName("OrderIndex");
 
-                    b.Property<Guid>("QuestionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<Guid?>("QuestionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("QuestionId");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2")
@@ -327,44 +335,65 @@ namespace QuizApp.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedDate");
 
                     b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<string>("Explanation")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("Explanation");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("ImageUrl");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IsActive");
 
                     b.Property<int>("OrderIndex")
                         .HasColumnType("int");
 
                     b.Property<int>("Points")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1)
+                        .HasColumnName("Points");
 
                     b.Property<Guid?>("QuestionRepoId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("QuestionRepoId");
 
                     b.Property<string>("QuestionText")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("QuestionText");
 
-                    b.Property<Guid>("QuestionTypeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("QuizId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("QuestionType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1)
+                        .HasColumnName("QuestionType");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedDate");
 
                     b.HasKey("Id");
 
                     b.HasIndex("QuestionRepoId");
-
-                    b.HasIndex("QuizId");
 
                     b.ToTable("Questions");
                 });
@@ -373,17 +402,20 @@ namespace QuizApp.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedDate");
 
                     b.Property<Guid>("CreatorId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
 
                     b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -405,7 +437,7 @@ namespace QuizApp.Persistence.Migrations
                     b.Property<int>("MaxQuestions")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(10)
+                        .HasDefaultValue(50)
                         .HasColumnName("MaxQuestions");
 
                     b.Property<string>("Name")
@@ -413,12 +445,6 @@ namespace QuizApp.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("Name");
-
-                    b.Property<int>("QuestionCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnName("QuestionCount");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2")
@@ -435,52 +461,49 @@ namespace QuizApp.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
 
-                    b.Property<Guid>("CategoryId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CategoryId");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedDate");
 
                     b.Property<Guid>("CreatorId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
 
                     b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)")
                         .HasColumnName("Description");
 
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time")
-                        .HasColumnName("Duration");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("EndDate");
-
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsPublished")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("IsActive");
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsPublished");
 
-                    b.Property<int>("MaxAttempts")
+                    b.Property<int?>("MaxAttempts")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(1)
                         .HasColumnName("MaxAttempts");
 
-                    b.Property<int>("PassingScore")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int?>("PassingScore")
                         .HasColumnType("int")
-                        .HasDefaultValue(0)
                         .HasColumnName("PassingScore");
+
+                    b.Property<DateTime?>("PublishedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("PublishedDate");
 
                     b.Property<bool>("ShowResults")
                         .ValueGeneratedOnAdd()
@@ -488,9 +511,11 @@ namespace QuizApp.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("ShowResults");
 
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("StartDate");
+                    b.Property<TimeSpan>("TimeLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("time")
+                        .HasDefaultValue(new TimeSpan(0, 0, 30, 0, 0))
+                        .HasColumnName("TimeLimit");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -511,18 +536,64 @@ namespace QuizApp.Persistence.Migrations
                     b.ToTable("Quizzes");
                 });
 
-            modelBuilder.Entity("QuizApp.Domain.Entities.QuizResult", b =>
+            modelBuilder.Entity("QuizApp.Domain.Entities.QuizQuestion", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedDate");
 
                     b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<byte>("OrderIndex")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("OrderIndex");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("QuestionId");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("QuizId");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedDate");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("QuizId");
+
+                    b.ToTable("QuizQuestions");
+                });
+
+            modelBuilder.Entity("QuizApp.Domain.Entities.QuizResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("EndTime");
 
                     b.Property<bool>("IsCompleted")
                         .ValueGeneratedOnAdd()
@@ -531,26 +602,26 @@ namespace QuizApp.Persistence.Migrations
                         .HasColumnName("IsCompleted");
 
                     b.Property<Guid>("QuizId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("QuizId");
 
                     b.Property<int>("Score")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(0)
                         .HasColumnName("Score");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("UpdatedDate");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("UserId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("QuizId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("QuizResults");
                 });
@@ -559,14 +630,16 @@ namespace QuizApp.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedDate");
 
                     b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
 
                     b.Property<bool>("IsCorrect")
                         .ValueGeneratedOnAdd()
@@ -575,13 +648,21 @@ namespace QuizApp.Persistence.Migrations
                         .HasColumnName("IsCorrect");
 
                     b.Property<Guid?>("OptionId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("OptionId");
 
                     b.Property<Guid>("QuestionId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("QuestionId");
 
-                    b.Property<Guid>("QuizResultId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<Guid?>("QuizResultId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("QuizResultId");
+
+                    b.Property<string>("TextAnswer")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("TextAnswer");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2")
@@ -664,8 +745,7 @@ namespace QuizApp.Persistence.Migrations
                     b.HasOne("QuizApp.Domain.Entities.Question", "Question")
                         .WithMany("Options")
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Question");
                 });
@@ -677,15 +757,7 @@ namespace QuizApp.Persistence.Migrations
                         .HasForeignKey("QuestionRepoId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("QuizApp.Domain.Entities.Quiz", "Quiz")
-                        .WithMany("Questions")
-                        .HasForeignKey("QuizId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("QuestionRepo");
-
-                    b.Navigation("Quiz");
                 });
 
             modelBuilder.Entity("QuizApp.Domain.Entities.QuestionRepo", b =>
@@ -704,8 +776,7 @@ namespace QuizApp.Persistence.Migrations
                     b.HasOne("QuizApp.Domain.Entities.Category", "Category")
                         .WithMany("Quizzes")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("QuizApp.Domain.Entities.Identity.AppUser", "Creator")
                         .WithMany("Quizzes")
@@ -718,6 +789,25 @@ namespace QuizApp.Persistence.Migrations
                     b.Navigation("Creator");
                 });
 
+            modelBuilder.Entity("QuizApp.Domain.Entities.QuizQuestion", b =>
+                {
+                    b.HasOne("QuizApp.Domain.Entities.Question", "Question")
+                        .WithMany("QuizQuestions")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizApp.Domain.Entities.Quiz", "Quiz")
+                        .WithMany("QuizQuestions")
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+
+                    b.Navigation("Quiz");
+                });
+
             modelBuilder.Entity("QuizApp.Domain.Entities.QuizResult", b =>
                 {
                     b.HasOne("QuizApp.Domain.Entities.Quiz", "Quiz")
@@ -726,15 +816,15 @@ namespace QuizApp.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("QuizApp.Domain.Entities.Identity.AppUser", "Student")
+                    b.HasOne("QuizApp.Domain.Entities.Identity.AppUser", "User")
                         .WithMany("QuizResults")
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Quiz");
 
-                    b.Navigation("Student");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("QuizApp.Domain.Entities.UserAnswer", b =>
@@ -742,7 +832,7 @@ namespace QuizApp.Persistence.Migrations
                     b.HasOne("QuizApp.Domain.Entities.Option", "Option")
                         .WithMany("UserAnswers")
                         .HasForeignKey("OptionId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("QuizApp.Domain.Entities.Question", "Question")
                         .WithMany("UserAnswers")
@@ -751,10 +841,9 @@ namespace QuizApp.Persistence.Migrations
                         .IsRequired();
 
                     b.HasOne("QuizApp.Domain.Entities.QuizResult", "QuizResult")
-                        .WithMany("StudentAnswers")
+                        .WithMany("UserAnswers")
                         .HasForeignKey("QuizResultId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Option");
 
@@ -786,6 +875,8 @@ namespace QuizApp.Persistence.Migrations
                 {
                     b.Navigation("Options");
 
+                    b.Navigation("QuizQuestions");
+
                     b.Navigation("UserAnswers");
                 });
 
@@ -796,14 +887,14 @@ namespace QuizApp.Persistence.Migrations
 
             modelBuilder.Entity("QuizApp.Domain.Entities.Quiz", b =>
                 {
-                    b.Navigation("Questions");
+                    b.Navigation("QuizQuestions");
 
                     b.Navigation("QuizResults");
                 });
 
             modelBuilder.Entity("QuizApp.Domain.Entities.QuizResult", b =>
                 {
-                    b.Navigation("StudentAnswers");
+                    b.Navigation("UserAnswers");
                 });
 #pragma warning restore 612, 618
         }
