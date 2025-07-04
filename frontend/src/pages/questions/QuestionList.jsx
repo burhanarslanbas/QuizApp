@@ -1,155 +1,124 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { questionService } from '@/services/questionService';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { DataTable } from '@/components/common/DataTable';
-import { toast } from 'react-hot-toast';
+import {
+  Box,
+  Button,
+  Typography,
+  IconButton,
+  Paper,
+  CircularProgress
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { questionService } from '../../services/questionService';
+import { useNotification } from '../../context/NotificationContext';
 
 const QuestionList = () => {
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    search: '',
-    categoryId: '',
-    questionType: '',
-  });
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadQuestions();
-  }, [filters]);
+  const { showNotification } = useNotification();
+  const [loading, setLoading] = useState(false);
+  const [questions, setQuestions] = useState([]);
 
   const loadQuestions = async () => {
     try {
       setLoading(true);
-      const response = await questionService.getAllQuestions(filters);
-      setQuestions(response.data);
+      const response = await questionService.getAllQuestions();
+      // Support both array and object (with items) response
+      const questionsArray = Array.isArray(response.data)
+        ? response.data
+        : (Array.isArray(response.data?.items)
+            ? response.data.items
+            : (response.data?.data || []));
+      setQuestions(questionsArray);
     } catch (error) {
-      toast.error('Sorular yüklenirken bir hata oluştu');
-      console.error('Error loading questions:', error);
+      showNotification('Sorular yüklenirken bir hata oluştu', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadQuestions();
+    // eslint-disable-next-line
+  }, []);
+
   const handleDelete = async (id) => {
     if (window.confirm('Bu soruyu silmek istediğinizden emin misiniz?')) {
       try {
         await questionService.deleteQuestion(id);
-        toast.success('Soru başarıyla silindi');
+        showNotification('Soru başarıyla silindi', 'success');
         loadQuestions();
       } catch (error) {
-        toast.error('Soru silinirken bir hata oluştu');
-        console.error('Error deleting question:', error);
+        showNotification('Soru silinirken bir hata oluştu', 'error');
       }
     }
   };
 
-  const columns = [
-    {
-      header: 'Soru Metni',
-      accessorKey: 'questionText',
-      cell: ({ row }) => (
-        <div className="max-w-md truncate" title={row.original.questionText}>
-          {row.original.questionText}
-        </div>
-      ),
-    },
-    {
-      header: 'Soru Tipi',
-      accessorKey: 'questionType',
-      cell: ({ row }) => {
-        const types = {
-          MULTIPLE_CHOICE: 'Çoktan Seçmeli',
-          TRUE_FALSE: 'Doğru/Yanlış',
-          SHORT_ANSWER: 'Kısa Cevap',
-        };
-        return types[row.original.questionType] || row.original.questionType;
-      },
-    },
-    {
-      header: 'Kategori',
-      accessorKey: 'categoryName',
-    },
-    {
-      header: 'Durum',
-      accessorKey: 'isActive',
-      cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {row.original.isActive ? 'Aktif' : 'Pasif'}
-        </span>
-      ),
-    },
-    {
-      header: 'İşlemler',
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(`/questions/edit/${row.original.id}`)}
-          >
-            Düzenle
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => handleDelete(row.original.id)}
-          >
-            Sil
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Sorular</h1>
-        <Button onClick={() => navigate('/questions/create')}>
-          Yeni Soru Ekle
+    <Box>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h5">Sorular</Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/questions/create')}
+        >
+          Yeni Soru
         </Button>
-      </div>
-
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input
-            placeholder="Soru ara..."
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          />
-          <Select
-            value={filters.categoryId}
-            onChange={(e) => setFilters({ ...filters, categoryId: e.target.value })}
-          >
-            <option value="">Tüm Kategoriler</option>
-            {/* Kategoriler buraya eklenecek */}
-          </Select>
-          <Select
-            value={filters.questionType}
-            onChange={(e) => setFilters({ ...filters, questionType: e.target.value })}
-          >
-            <option value="">Tüm Soru Tipleri</option>
-            <option value="MULTIPLE_CHOICE">Çoktan Seçmeli</option>
-            <option value="TRUE_FALSE">Doğru/Yanlış</option>
-            <option value="SHORT_ANSWER">Kısa Cevap</option>
-          </Select>
-        </div>
-      </div>
-
-      <DataTable
-        columns={columns}
-        data={questions}
-        loading={loading}
-        pagination
-        pageSize={10}
-      />
-    </div>
+      </Box>
+      <Paper sx={{ p: 2 }}>
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+            <CircularProgress />
+          </Box>
+        ) : questions.length === 0 ? (
+          <Typography align="center" color="text.secondary" sx={{ py: 4 }}>
+            Hiç soru bulunamadı.
+          </Typography>
+        ) : (
+          <Box sx={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Soru</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Tip</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Puan</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Sıra</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Açıklama</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Resim</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Aktif</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Seçenekler</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Oluşturulma</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>Güncellenme</th>
+                  <th style={{ padding: 8, borderBottom: '1px solid #eee' }}>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                {questions.map((q) => (
+                  <tr key={q.id}>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.questionText}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.questionType === 1 ? 'Çoktan Seçmeli' : q.questionType === 2 ? 'Doğru/Yanlış' : 'Kısa Cevap'}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.points}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.orderIndex}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.explanation}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.imageUrl ? <a href={q.imageUrl} target="_blank" rel="noopener noreferrer">Görüntüle</a> : '-'}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.isActive ? 'Evet' : 'Hayır'}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{(q.options || []).map(opt => opt.optionText).join(', ')}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.createdAt ? new Date(q.createdAt).toLocaleString() : '-'}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{q.updatedAt ? new Date(q.updatedAt).toLocaleString() : '-'}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>
+                      <IconButton size="small" onClick={() => navigate(`/questions/edit/${q.id}`)}><EditIcon /></IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(q.id)}><DeleteIcon /></IconButton>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Box>
+        )}
+      </Paper>
+    </Box>
   );
 };
 

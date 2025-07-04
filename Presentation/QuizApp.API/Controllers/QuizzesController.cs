@@ -6,6 +6,7 @@ using QuizApp.Application.Services;
 using QuizApp.Domain.Constants;
 using QuizApp.Application.Exceptions;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace QuizApp.API.Controllers;
 
@@ -16,10 +17,12 @@ namespace QuizApp.API.Controllers;
 public class QuizzesController : ControllerBase
 {
     private readonly IQuizService _quizService;
+    private readonly ILogger<QuizzesController> _logger;
 
-    public QuizzesController(IQuizService quizService)
+    public QuizzesController(IQuizService quizService, ILogger<QuizzesController> logger)
     {
         _quizService = quizService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -47,8 +50,18 @@ public class QuizzesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<QuizResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllQuizzes([FromQuery] GetQuizzesRequest request)
     {
-        var result = await _quizService.GetAllAsync(request);
-        return Ok(result);
+        try
+        {
+            _logger.LogInformation("Getting all quizzes with request: {@Request}", request);
+            var result = await _quizService.GetAllAsync(request);
+            _logger.LogInformation("Successfully retrieved {Count} quizzes", result?.Count() ?? 0);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all quizzes");
+            throw;
+        }
     }
 
     /// <summary>

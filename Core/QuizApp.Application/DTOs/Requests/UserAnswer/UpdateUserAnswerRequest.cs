@@ -7,5 +7,4 @@ public record UpdateUserAnswerRequest
     public Guid? OptionId { get; set; }
     public Guid? QuizResultId { get; set; }
     public string? TextAnswer { get; set; }
-    public bool IsCorrect { get; set; }
 }

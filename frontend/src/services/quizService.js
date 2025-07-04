@@ -9,7 +9,15 @@ export const quizService = {
 
   // Get all quizzes with pagination
   getQuizzes: async (params = {}) => {
-    return get(API_ENDPOINTS.QUIZ.LIST, params);
+    try {
+      console.log('Fetching quizzes with params:', params);
+      const response = await get(API_ENDPOINTS.QUIZ.LIST, params);
+      console.log('Quizzes response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      throw error;
+    }
   },
 
   // Get quizzes by category

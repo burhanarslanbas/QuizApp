@@ -81,10 +81,10 @@ public class QuestionManager : IQuestionService
         if (request.QuizId.HasValue)
             query = query.Where(q => q.QuizQuestions.Any(qq => qq.QuizId == request.QuizId));
 
-        if (!string.IsNullOrEmpty(request.QuestionType.ToString()))
+        if (request.QuestionType.HasValue)
             query = query.Where(q => q.QuestionType == request.QuestionType);
 
-        if (request.IsActive)
+        if (request.IsActive.HasValue)
             query = query.Where(q => q.IsActive == request.IsActive);
 
         var questions = await query.ToListAsync();
