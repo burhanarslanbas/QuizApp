@@ -22,9 +22,8 @@ export const userAnswerService = {
     const request = {
       QuizResultId: data.quizResultId,
       QuestionId: data.questionId,
-      SelectedOptionId: data.selectedOptionId,
-      IsCorrect: data.isCorrect,
-      TimeSpent: data.timeSpent
+      OptionId: data.optionId,
+      TextAnswer: data.textAnswer
     };
     return post(API_ENDPOINTS.USER_ANSWER.CREATE, request);
   },
@@ -35,9 +34,8 @@ export const userAnswerService = {
       Id: data.id,
       QuizResultId: data.quizResultId,
       QuestionId: data.questionId,
-      SelectedOptionId: data.selectedOptionId,
-      IsCorrect: data.isCorrect,
-      TimeSpent: data.timeSpent
+      OptionId: data.optionId,
+      TextAnswer: data.textAnswer
     };
     return put(API_ENDPOINTS.USER_ANSWER.UPDATE, request);
   },

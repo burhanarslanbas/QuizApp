@@ -18,6 +18,10 @@ import {
   Menu,
   MenuItem,
   InputAdornment,
+  Paper,
+  FormControl,
+  InputLabel,
+  Select,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -32,6 +36,7 @@ import ErrorComponent from '../../components/common/Error';
 import { useNotification } from '../../context/NotificationContext';
 import Layout from '../../components/layout/Layout';
 import { useToken } from '../../context/TokenContext';
+import DataTable from '../../components/common/DataTable';
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -45,10 +50,21 @@ const Categories = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredCategories, setFilteredCategories] = useState([]);
   const { user } = useToken();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [filters, setFilters] = useState({
+    search: ''
+  });
+  const [openDialog, setOpenDialog] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: ''
+  });
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [page, rowsPerPage, filters]);
 
   useEffect(() => {
     if (categories) {
@@ -64,13 +80,13 @@ const Categories = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await categoryService.getCategories();
-      setCategories(response);
-      setFilteredCategories(response);
+      const response = await categoryService.getAllCategories();
+      console.log('API Response:', response);
+      setCategories(response.data || []);
+      setTotalCount(response.totalCount || 0);
     } catch (err) {
       console.error('Error fetching categories:', err);
-      setError(err.message || 'Failed to load categories');
-      showNotification(err.message || 'Error loading categories', 'error');
+      showNotification('Kategoriler yüklenirken bir hata oluştu', 'error');
     } finally {
       setLoading(false);
     }
@@ -115,6 +131,109 @@ const Categories = () => {
     setSelectedCategory(null);
   };
 
+  const handleFilterChange = (event) => {
+    const { name, value } = event.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setPage(0);
+  };
+
+  const handleOpenDialog = (category = null) => {
+    if (category) {
+      setSelectedCategory(category);
+      setFormData({
+        name: category.name,
+        description: category.description
+      });
+    } else {
+      setSelectedCategory(null);
+      setFormData({
+        name: '',
+        description: ''
+      });
+    }
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedCategory(null);
+    setFormData({
+      name: '',
+      description: ''
+    });
+  };
+
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      if (selectedCategory) {
+        await categoryService.updateCategory({
+          id: selectedCategory.id,
+          ...formData
+        });
+        showNotification('Kategori başarıyla güncellendi', 'success');
+      } else {
+        await categoryService.createCategory(formData);
+        showNotification('Kategori başarıyla oluşturuldu', 'success');
+      }
+      handleCloseDialog();
+      fetchCategories();
+    } catch (error) {
+      console.error('Error saving category:', error);
+      showNotification('Kategori kaydedilirken bir hata oluştu', 'error');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) {
+      try {
+        await categoryService.deleteCategory(id);
+        showNotification('Kategori başarıyla silindi', 'success');
+        fetchCategories();
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        showNotification('Kategori silinirken bir hata oluştu', 'error');
+      }
+    }
+  };
+
+  const columns = [
+    { field: 'name', headerName: 'Kategori Adı', flex: 1 },
+    { field: 'description', headerName: 'Açıklama', flex: 1 },
+    {
+      field: 'actions',
+      headerName: 'İşlemler',
+      width: 120,
+      renderCell: (params) => (
+        <Box>
+          <IconButton
+            size="small"
+            onClick={() => handleOpenDialog(params.row)}
+          >
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => handleDelete(params.row.id)}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+      )
+    }
+  ];
+
   if (loading) return <Loading />;
   if (error) return <ErrorComponent message={error} />;
 
@@ -128,83 +247,41 @@ const Categories = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => navigate('/categories/create')}
+            onClick={() => handleOpenDialog()}
           >
             Yeni Kategori
           </Button>
         </Stack>
 
-        <Box mb={3}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Kategori ara..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ maxWidth: 500 }}
-          />
-        </Box>
-
-        <Grid container spacing={3}>
-          {filteredCategories.map((category) => (
-            <Grid item xs={12} sm={6} md={4} key={category.id}>
-              <Card
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  position: 'relative',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                  },
-                }}
-                onClick={() => navigate(`/categories/${category.id}`)}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMenuClick(e, category);
-                      }}
-                      aria-label="category options"
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
-                  </Box>
-                  <Typography variant="h6" gutterBottom component="div">
-                    {category.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    {category.description}
-                  </Typography>
-                </CardContent>
-                <Box sx={{ p: 2, pt: 0 }}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/categories/${category.id}`);
-                    }}
-                  >
-                    Detayları Görüntüle
-                  </Button>
-                </Box>
-              </Card>
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Ara"
+                name="search"
+                value={filters.search}
+                onChange={handleFilterChange}
+                size="small"
+              />
             </Grid>
-          ))}
-        </Grid>
+          </Grid>
+        </Paper>
+
+        <DataTable
+          rows={categories}
+          columns={columns}
+          loading={loading}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalCount={totalCount}
+          onPageChange={(newPage) => setPage(newPage)}
+          onRowsPerPageChange={(newRowsPerPage) => {
+            setRowsPerPage(newRowsPerPage);
+            setPage(0);
+          }}
+          emptyMessage="Kategori bulunamadı"
+        />
 
         <Menu
           anchorEl={anchorEl}
@@ -238,6 +315,45 @@ const Categories = () => {
               Sil
             </Button>
           </DialogActions>
+        </Dialog>
+
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            {selectedCategory ? 'Kategori Düzenle' : 'Yeni Kategori'}
+          </DialogTitle>
+          <form onSubmit={handleSubmit}>
+            <DialogContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Kategori Adı"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Açıklama"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleFormChange}
+                    multiline
+                    rows={3}
+                  />
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>İptal</Button>
+              <Button type="submit" variant="contained">
+                {selectedCategory ? 'Güncelle' : 'Oluştur'}
+              </Button>
+            </DialogActions>
+          </form>
         </Dialog>
       </Box>
     </Layout>

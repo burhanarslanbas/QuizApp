@@ -10,7 +10,8 @@ import Register from "../pages/auth/Register";
 
 // Question pages
 import QuestionList from "../pages/questions/QuestionList";
-import QuestionForm from "../pages/questions/QuestionForm";
+import CreateQuestion from "../pages/questions/CreateQuestion";
+import EditQuestion from "../pages/questions/EditQuestion";
 
 // Category pages
 import Categories from "../pages/categories/Categories";
@@ -43,8 +44,8 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={<RoleBasedRoute allowedRoles={['admin','teacher','student']} redirectTo="/login"><Dashboard /></RoleBasedRoute>} />
 
       <Route path="/questions" element={<RoleBasedRoute allowedRoles={['admin','teacher']} redirectTo="/dashboard"><QuestionList /></RoleBasedRoute>} />
-      <Route path="/questions/create" element={<RoleBasedRoute allowedRoles={['admin','teacher']} redirectTo="/questions"><QuestionForm /></RoleBasedRoute>} />
-      <Route path="/questions/edit/:id" element={<RoleBasedRoute allowedRoles={['admin','teacher']} redirectTo="/questions"><QuestionForm /></RoleBasedRoute>} />
+      <Route path="/questions/create" element={<RoleBasedRoute allowedRoles={['admin','teacher']} redirectTo="/questions"><CreateQuestion /></RoleBasedRoute>} />
+      <Route path="/questions/edit/:id" element={<RoleBasedRoute allowedRoles={['admin','teacher']} redirectTo="/questions"><EditQuestion /></RoleBasedRoute>} />
 
       <Route path="/categories" element={<RoleBasedRoute allowedRoles={['admin','teacher','student']} redirectTo="/login"><Categories /></RoleBasedRoute>} />
       <Route path="/categories/create" element={<RoleBasedRoute allowedRoles={['admin','teacher']} redirectTo="/categories"><CreateCategory /></RoleBasedRoute>} />

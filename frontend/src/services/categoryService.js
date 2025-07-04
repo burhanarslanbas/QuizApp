@@ -1,39 +1,54 @@
-import { get, post, put, del } from './baseService';
+import api from './api/axiosConfig';
 import { API_ENDPOINTS } from '../config';
 
 export const categoryService = {
-  // Get all categories with pagination
-  getCategories: async (params = {}) => {
-    return get(API_ENDPOINTS.CATEGORY.LIST, params);
+  getAllCategories: async () => {
+    try {
+      const response = await api.get(API_ENDPOINTS.CATEGORY.LIST);
+      // API yanıtı doğrudan kategori listesi dönüyor olabilir
+      return {
+        data: Array.isArray(response.data) ? response.data : response.data.data,
+        totalCount: Array.isArray(response.data) ? response.data.length : response.data.totalCount
+      };
+    } catch (error) {
+      throw error;
+    }
   },
 
-  // Get category by ID
-  getCategory: async (categoryId) => {
-    return get(`${API_ENDPOINTS.CATEGORY.DETAIL}/${categoryId}`);
+  getCategory: async (id) => {
+    try {
+      const response = await api.get(`${API_ENDPOINTS.CATEGORY.DETAIL}/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  // Create new category
   createCategory: async (data) => {
-    const request = {
-      Name: data.name,
-      Description: data.description
-    };
-    return post(API_ENDPOINTS.CATEGORY.CREATE, request);
+    try {
+      const response = await api.post(API_ENDPOINTS.CATEGORY.CREATE, data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  // Update category
   updateCategory: async (data) => {
-    const request = {
-      Id: data.id,
-      Name: data.name,
-      Description: data.description
-    };
-    return put(API_ENDPOINTS.CATEGORY.UPDATE, request);
+    try {
+      const response = await api.put(API_ENDPOINTS.CATEGORY.UPDATE, data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  // Delete category
-  deleteCategory: async (categoryId) => {
-    return del(`${API_ENDPOINTS.CATEGORY.DETAIL}/${categoryId}`);
+  deleteCategory: async (id) => {
+    try {
+      const response = await api.delete(`${API_ENDPOINTS.CATEGORY.DELETE}/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Get category quizzes
